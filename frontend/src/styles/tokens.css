@@ -1,0 +1,90 @@
+/*
+ * Design tokens.
+ *
+ * Virginia Tech's real palette on warm paper. Each colour has exactly one
+ * job — maroon is brand, focus and affirmative; orange is the live state and
+ * warnings, nothing else. A colour that means something everywhere means
+ * nothing, and that discipline is what keeps the UI quiet.
+ */
+:root {
+  color-scheme: light;
+
+  /* Surfaces — warm, never clinical white */
+  --paper: #fbf9f6;
+  --paper-alt: #f3efea;
+  --paper-sunk: #efe9e2;
+
+  /* Ink — warm near-black, and a grey ramp warmed to match */
+  --ink: #1a1614;        /* 15.9:1 on --paper */
+  --ink-soft: #514840;   /*  8.0:1 */
+  --ink-mute: #6b625c;   /*  5.4:1 */
+  --ink-faint: #9a8f85;  /*  2.9:1 — decorative and large text only */
+
+  --rule: #e2dbd3;
+  --rule-strong: #cfc5ba;
+
+  /* Brand: focus, primary action, affirmatives */
+  --maroon: #861f41;       /* 9.3:1 on --paper */
+  --maroon-deep: #6b1934;
+  --maroon-line: #a85a76;  /* borders on a maroon fill */
+  --maroon-div: #9c4c68;
+  --on-maroon: #fbf9f6;      /* 8.6:1 on --maroon */
+  --on-maroon-soft: #e8cdd6;
+  --on-maroon-faint: #f0dde4;
+
+  /* Live state and warnings only */
+  --orange: #e5751f;       /* graphic use only — 2.9:1, fails as text */
+  --orange-text: #b4551a;  /* 4.6:1 — use whenever orange must be words */
+
+  /* Keyboard focus. Maroon reads clearly on paper and against the
+     maroon card, which is never itself focusable. */
+  --focus: #861f41;
+
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.3125rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+  --text-3xl: 3.5rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+
+  /* Sharp corners throughout: the single strongest signal that this was
+     drawn on purpose rather than generated. */
+  --radius: 0;
+
+  --tap: 44px;
+  --transition: 160ms cubic-bezier(0.2, 0, 0.2, 1);
+
+  /* Mono label: the recurring device that makes this read as an
+     instrument rather than a landing page. */
+  --label-size: 0.6875rem;
+  --label-tracking: 0.16em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition: 1ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
