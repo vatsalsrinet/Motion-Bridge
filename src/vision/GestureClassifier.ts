@@ -76,7 +76,7 @@ export class GestureClassifier {
       return { label: "NEUTRAL", confidence, distance: closest.distance };
     }
     if (closest.label !== "NEUTRAL" && closest.distance <= this.unknownDistance && confidence >= this.confidenceThreshold) {
-      return { label: closest.label, confidence, distance: closest.distance };
+      return { label: closest.label as GestureLabel, confidence, distance: closest.distance };
     }
     return { label: "UNKNOWN", confidence, distance: closest.distance };
   }
