@@ -1,44 +1,52 @@
 # Motion-Bridge
 
-## Vision / Gesture Recognition
+Motion-Bridge combines the browser vision controller, Python gesture-recognition backend, and TypeScript campus-agent API.
 
-The `src/vision` module owns the webcam → MediaPipe Face Landmarker → personalized gesture pipeline. It emits only the shared `GestureCommand` contract, so consumers do not need to know about MediaPipe.
-
-```ts
-import { startMotionBridge } from "./vision";
-
-const controller = await startMotionBridge(videoElement, (event) => {
-  if (event.command === "NEXT") moveToNextResult();
-  if (event.command === "SELECT") selectCurrentResult();
-});
-
-controller.beginNeutralCalibration();
-// After the neutral meter completes:
-controller.beginGestureCalibration("NEXT");
-// After the NEXT meter completes:
-controller.beginGestureCalibration("SELECT");
-controller.getCalibrationProgress(); // { neutral, next, select, ... }
-controller.isReady();
-controller.stop();
-```
-
-### Run the debug harness
-
-```bash
-python -m pip install -r requirements.txt
-python -m vision_backend.main
-```
-
-In a second terminal:
+## Install
 
 ```bash
 npm install
-npm run dev
+python -m pip install -r requirements.txt
 ```
 
-Open the Vite URL over `localhost` (or HTTPS), allow camera access, and use the calibration buttons. The browser keeps ownership of the webcam and sends compressed frames to `ws://127.0.0.1:8000/ws/vision`; Python owns MediaPipe, OpenCV, calibration, scikit-learn classification, and temporal events. The Face Landmarker `.task` model is downloaded on first backend use; set `MOTIONBRIDGE_FACE_MODEL` to a local copy for offline startup.
+Copy `.env.example` to `.env` if you want to configure Databricks or backend options.
 
-Calibration collects 80 neutral frames, then five movement windows per gesture. Each window starts after standardized movement crosses `MOTIONBRIDGE_MOVEMENT_START`, lasts 300–600 ms, and requires return below `MOTIONBRIDGE_NEUTRAL_RETURN` before the next repetition. Quality, confidence, stability, and cooldown can be tuned with the `MOTIONBRIDGE_*` variables in `vision_backend/config.py`.
+## Run
+
+Start the Python vision service:
+
+```bash
+python -m vision_backend.main
+```
+
+Start the campus API in another terminal:
+
+```bash
+npm run dev:server
+```
+
+Start the website in a third terminal:
+
+```bash
+npm run dev:frontend
+```
+
+The website uses the Vite URL, the campus API defaults to `http://localhost:3000`, and the vision WebSocket defaults to `ws://127.0.0.1:8000/ws/vision`.
+
+## Vision calibration
+
+Allow camera access, collect the neutral baseline, then teach NEXT and SELECT with five deliberate repetitions each. The frontend consumes the stable `GestureCommand` contract while Python owns MediaPipe, OpenCV, calibration, classification, and temporal event handling.
+
+## Campus API
+
+```bash
+curl http://localhost:3000/api/health
+curl -X POST http://localhost:3000/api/agent -H "Content-Type: application/json" -d "{\"query\":\"Find an accessible study space open tonight\"}"
+```
+
+Without Databricks configuration the backend uses its bundled campus snapshot. Set `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, and `DATABRICKS_WAREHOUSE_ID` to use the SQL Statement Execution API.
+
+## Verify
 
 ```bash
 npm test

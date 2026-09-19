@@ -1,0 +1,99 @@
+[
+  {
+    "id": "newman-library",
+    "name": "Newman Library",
+    "category": "study",
+    "latitude": 37.2296,
+    "longitude": -80.4231,
+    "openTime": "07:00",
+    "closeTime": "23:00",
+    "buildingId": "newman-library",
+    "accessibility": {
+      "accessibleEntrance": true,
+      "automaticDoor": true,
+      "elevatorAvailable": true,
+      "accessibleRoute": true,
+      "notes": "Accessible east entrance and elevator available."
+    },
+    "activeImpacts": []
+  },
+  {
+    "id": "torgersen-hall",
+    "name": "Torgersen Hall",
+    "category": "study",
+    "latitude": 37.2289,
+    "longitude": -80.4242,
+    "openTime": "08:00",
+    "closeTime": "22:00",
+    "buildingId": "torgersen-hall",
+    "accessibility": {
+      "accessibleEntrance": true,
+      "automaticDoor": true,
+      "elevatorAvailable": true,
+      "accessibleRoute": true,
+      "notes": "Accessible entrance on the north side."
+    },
+    "activeImpacts": []
+  },
+  {
+    "id": "student-success-center",
+    "name": "Student Success Center",
+    "category": "study",
+    "latitude": 37.2267,
+    "longitude": -80.4219,
+    "openTime": "08:00",
+    "closeTime": "20:00",
+    "buildingId": "student-success-center",
+    "accessibility": {
+      "accessibleEntrance": true,
+      "automaticDoor": false,
+      "elevatorAvailable": true,
+      "accessibleRoute": true,
+      "notes": "Accessible route is available from the west entrance."
+    },
+    "activeImpacts": []
+  },
+  {
+    "id": "burruss-hall",
+    "name": "Burruss Hall",
+    "category": "academic",
+    "latitude": 37.2292,
+    "longitude": -80.4256,
+    "openTime": "07:30",
+    "closeTime": "21:00",
+    "buildingId": "burruss-hall",
+    "accessibility": {
+      "accessibleEntrance": true,
+      "automaticDoor": false,
+      "elevatorAvailable": true,
+      "accessibleRoute": true,
+      "notes": "Ramp access is available at the main plaza."
+    },
+    "activeImpacts": []
+  },
+  {
+    "id": "war-memorial-gym",
+    "name": "War Memorial Gym",
+    "category": "recreation",
+    "latitude": 37.2259,
+    "longitude": -80.4189,
+    "openTime": "06:00",
+    "closeTime": "22:00",
+    "buildingId": "war-memorial-gym",
+    "accessibility": {
+      "accessibleEntrance": false,
+      "automaticDoor": false,
+      "elevatorAvailable": false,
+      "accessibleRoute": false,
+      "notes": "South entrance route is under review."
+    },
+    "activeImpacts": [
+      {
+        "id": "impact-gym-entrance",
+        "buildingId": "war-memorial-gym",
+        "type": "accessibility",
+        "description": "South entrance construction is active."
+      }
+    ]
+  }
+]
