@@ -36,9 +36,7 @@ export class GestureEventEmitter {
         callback(event);
       } catch (error) {
         // One consumer must not prevent other subscribers from receiving commands.
-        queueMicrotask(() => {
-          throw error;
-        });
+        console.error("MotionBridge subscriber failed", error);
       }
     }
   }
