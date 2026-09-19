@@ -1,5 +1,4 @@
 import { CalibrationManager } from "./CalibrationManager";
-import { euclideanDistance } from "./CalibrationManager";
 import { CameraService } from "./CameraService";
 import { FaceTracker } from "./FaceTracker";
 import { GestureClassifier, type GestureClassifierOptions } from "./GestureClassifier";
@@ -144,7 +143,7 @@ export async function startMotionBridge(
           calibration.captureNeutral(features.vector);
         } else {
           const normalized = calibration.normalizeFeatures(features.vector);
-          const movementMagnitude = euclideanDistance(normalized, normalized.map(() => 0));
+          const movementMagnitude = rootMeanSquare(normalized);
           if (capturePhase === "COLLECTING" && movementMagnitude >= 2.5) {
             calibration.captureGesture(calibrationMode, features.vector);
             capturePhase = "WAITING_FOR_NEUTRAL";
@@ -188,4 +187,9 @@ export async function startMotionBridge(
 
   animationHandle = requestAnimationFrame(processLoop);
   return controller;
+}
+
+function rootMeanSquare(values: number[]): number {
+  if (!values.length) return 0;
+  return Math.sqrt(values.reduce((sum, value) => sum + value * value, 0) / values.length);
 }
