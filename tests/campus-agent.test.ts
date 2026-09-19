@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { CampusAgentService } from "../server/services/CampusAgentService";
+import { CampusAgent } from "../server/agent/CampusAgent";
 
-const agent = new CampusAgentService();
+const agent = new CampusAgent();
 
-describe("CampusAgentService", () => {
+describe("CampusAgent", () => {
   it.each([
     ["Find an accessible study space open tonight.", "study"],
     ["Find somewhere with an automatic entrance.", "automatic"],

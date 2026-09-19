@@ -6,12 +6,18 @@ import { errorHandler } from "./middleware/errorHandler";
 import { requestLogger } from "./middleware/requestLogger";
 import { createAgentRouter } from "./routes/agent";
 import { createHealthRouter } from "./routes/health";
-import { CampusAgentService } from "./services/CampusAgentService";
+import { CampusAgent as CampusAgentImplementation } from "./agent/CampusAgent";
 import { DatabricksService } from "./services/DatabricksService";
-import { CampusAgent } from "./types/agent";
+import { CampusAgent as CampusAgentContract } from "./types/agent";
 
 export const createApp = (
-  campusAgent: CampusAgent = new CampusAgentService(),
+  campusAgent: CampusAgentContract = new CampusAgentImplementation(
+    new DatabricksService({
+      host: config.databricksHost,
+      token: config.databricksToken,
+      warehouseId: config.databricksWarehouseId
+    })
+  ),
   databricksService: DatabricksService = new DatabricksService(
     {
       host: config.databricksHost,
