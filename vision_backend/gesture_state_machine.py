@@ -44,7 +44,10 @@ class GestureStateMachine:
             self.candidate = None
             self.candidate_started = None
             return None
-        recent = [item for item in self.history if now - item[0] <= self.stable_s]
+        # At 10–15 FPS a 200–300 ms stability window may only contain two
+        # frames, so allow one additional frame for transport jitter.
+        recent_window = max(self.stable_s * 2.0, 0.35)
+        recent = [item for item in self.history if now - item[0] <= recent_window]
         same = [item for item in recent if item[1].label == prediction.label and item[1].confidence >= 62]
         if len(same) < 2:
             return None

@@ -86,7 +86,7 @@ class CalibrationManager:
             return False
         if self.phase == "WINDOW":
             self._window.append(normalized)
-            elapsed = now - (self._window_started or now)
+            elapsed = now - (self._window_started if self._window_started is not None else now)
             if elapsed >= self.config.sample_window_min_s and (
                 movement <= self.config.neutral_return_rms or elapsed >= self.config.sample_window_max_s
             ):
