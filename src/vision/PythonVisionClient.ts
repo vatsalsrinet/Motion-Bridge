@@ -92,7 +92,9 @@ export class PythonVisionClient {
   }
 
   sendFrame(image: string): void {
-    if (this.socket?.readyState === WebSocket.OPEN) this.socket.send(JSON.stringify({ type: "frame", image }));
+    if (this.socket?.readyState === WebSocket.OPEN && this.socket.bufferedAmount < 1_000_000) {
+      this.socket.send(JSON.stringify({ type: "frame", image }));
+    }
   }
 
   beginCalibration(gesture: "NEUTRAL" | "NEXT" | "SELECT"): void {
