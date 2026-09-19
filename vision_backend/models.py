@@ -37,6 +37,13 @@ class CalibrationProgressPayload(BaseModel):
     quality: int = Field(default=0, ge=0, le=100)
     ready: bool = False
     issue: str | None = None
+    neutral_current: int = 0
+    neutral_required: int = 80
+    next_current: int = 0
+    select_current: int = 0
+    gesture_required: int = 5
+    next_quality: int = 0
+    select_quality: int = 0
 
 
 class EventPayload(BaseModel):

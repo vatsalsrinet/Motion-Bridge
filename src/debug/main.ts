@@ -108,8 +108,10 @@ window.setInterval(() => {
   $("#camera-status").className = runtime.cameraActive ? "good" : "bad";
   $("#face-status").textContent = runtime.faceDetected ? "DETECTED" : "SEARCHING";
   $("#face-status").className = runtime.faceDetected ? "good" : "muted";
-  $("#system-status").textContent = calibration.ready ? "READY" : calibration.mode !== "IDLE" ? "CALIBRATING" : "IDLE";
-  $("#system-status").className = calibration.ready ? "good" : "muted";
+  const backendReady = runtime.backendConnected !== false;
+  $("#system-status").textContent = !backendReady ? "BACKEND OFFLINE" : calibration.ready ? "READY" : calibration.mode !== "IDLE" ? "CALIBRATING" : "IDLE";
+  $("#system-status").className = !backendReady ? "bad" : calibration.ready ? "good" : "muted";
+  if (!backendReady) $("#hint").textContent = "Camera is active, but the Python vision backend is unavailable. Start it with: python -m vision_backend.main";
   $("#raw-distances").textContent = prediction.distances
     ? Object.entries(prediction.distances).map(([label, distance]) => `${label}: ${distance.toFixed(2)}`).join("  ·  ")
     : "No live vector yet.";

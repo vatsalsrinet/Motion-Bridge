@@ -84,7 +84,22 @@ class VisionSession:
             required = status.gesture_required if gesture in ("NEXT", "SELECT") else status.gesture_required
             phase = status.phase
             quality = status.next_quality if gesture == "NEXT" else status.select_quality if gesture == "SELECT" else min(status.next_quality, status.select_quality)
-        return CalibrationProgressPayload(gesture=gesture, current=current, required=required, phase=phase, quality=quality, ready=status.ready, issue=status.issue)
+        return CalibrationProgressPayload(
+            gesture=gesture,
+            current=current,
+            required=required,
+            phase=phase,
+            quality=quality,
+            ready=status.ready,
+            issue=status.issue,
+            neutral_current=status.neutral_current,
+            neutral_required=status.neutral_required,
+            next_current=status.next_current,
+            select_current=status.select_current,
+            gesture_required=status.gesture_required,
+            next_quality=status.next_quality,
+            select_quality=status.select_quality,
+        )
 
     @staticmethod
     def prediction_payload(prediction: Prediction, face_detected: bool) -> PredictionPayload:

@@ -73,6 +73,25 @@ export class CameraService {
     return context.getImageData(0, 0, width, height);
   }
 
+  captureJpeg(quality = 0.72, maxWidth = 640): string {
+    if (!this.isCameraActive()) {
+      throw new MotionBridgeError("CAMERA_UNAVAILABLE", "The webcam is not active.");
+    }
+    const width = this.videoElement.videoWidth || this.videoElement.clientWidth;
+    const height = this.videoElement.videoHeight || this.videoElement.clientHeight;
+    if (!width || !height) {
+      throw new MotionBridgeError("CAMERA_UNAVAILABLE", "The webcam has not produced a frame yet.");
+    }
+    this.canvas ??= document.createElement("canvas");
+    const scale = Math.min(1, maxWidth / width);
+    this.canvas.width = Math.max(1, Math.round(width * scale));
+    this.canvas.height = Math.max(1, Math.round(height * scale));
+    const context = this.canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) throw new MotionBridgeError("CAMERA_UNAVAILABLE", "Canvas capture is unavailable.");
+    context.drawImage(this.videoElement, 0, 0, this.canvas.width, this.canvas.height);
+    return this.canvas.toDataURL("image/jpeg", quality);
+  }
+
   isCameraActive(): boolean {
     return (this.stream?.getTracks().some((track) => track.readyState === "live") ?? false);
   }

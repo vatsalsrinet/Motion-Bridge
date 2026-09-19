@@ -62,6 +62,7 @@ export type CalibrationState = {
 export type MotionBridgeRuntimeStatus = {
   cameraActive: boolean;
   faceDetected: boolean;
+  backendConnected?: boolean;
 };
 
 export type MotionBridgeErrorCode =

@@ -1,25 +1,19 @@
-import { CalibrationManager } from "./CalibrationManager";
 import { CameraService } from "./CameraService";
-import { FaceTracker } from "./FaceTracker";
-import { GestureClassifier, type GestureClassifierOptions } from "./GestureClassifier";
 import { GestureEventEmitter } from "./GestureEventEmitter";
-import {
-  MotionBridgeError,
-  type CalibrationState,
-  type CalibrationProgress,
-  type GestureCapturePhase,
-  type GestureCommand,
-  type GesturePrediction,
-  type GestureType,
-  type MotionBridgeRuntimeStatus,
+import { PythonVisionClient } from "./PythonVisionClient";
+import type {
+  CalibrationProgress,
+  CalibrationState,
+  GestureCommand,
+  GesturePrediction,
+  GestureType,
+  MotionBridgeRuntimeStatus,
 } from "./types";
 
 export * from "./types";
 export { CameraService } from "./CameraService";
-export { FaceTracker } from "./FaceTracker";
-export { CalibrationManager } from "./CalibrationManager";
-export { GestureClassifier } from "./GestureClassifier";
 export { GestureEventEmitter } from "./GestureEventEmitter";
+export { PythonVisionClient } from "./PythonVisionClient";
 
 export type MotionBridgeController = {
   beginNeutralCalibration(): void;
@@ -33,163 +27,131 @@ export type MotionBridgeController = {
 };
 
 export type MotionBridgeOptions = {
-  classifier?: GestureClassifierOptions;
-  modelAssetPath?: string;
-  wasmBasePath?: string;
-  neutralRequired?: number;
-  gestureRequired?: number;
+  backendUrl?: string;
+  frameRate?: number;
 };
 
-/** Starts the complete webcam → MediaPipe → personalized gesture pipeline. */
+const defaultProgress: CalibrationProgress = {
+  neutral: 0,
+  next: 0,
+  select: 0,
+  neutralRequired: 80,
+  gestureRequired: 5,
+};
+
+/** Browser-side transport wrapper. Python owns all face processing and classification. */
 export async function startMotionBridge(
   videoElement: HTMLVideoElement,
   onCommand: (event: GestureCommand) => void,
   options: MotionBridgeOptions = {},
 ): Promise<MotionBridgeController> {
   const camera = new CameraService(videoElement);
-  const tracker = new FaceTracker({
-    modelAssetPath: options.modelAssetPath,
-    wasmBasePath: options.wasmBasePath,
-  });
-  const calibration = new CalibrationManager({
-    neutralRequired: options.neutralRequired,
-    gestureRequired: options.gestureRequired,
-  });
   const emitter = new GestureEventEmitter();
   emitter.subscribe(onCommand);
-
+  let progress = { ...defaultProgress };
+  let mode: CalibrationState["mode"] = "IDLE";
+  let phase: CalibrationState["phase"] = "IDLE";
+  let quality = { next: 0, select: 0 };
+  let issue: string | undefined;
+  let ready = false;
   let latestPrediction: GesturePrediction = { label: "UNKNOWN", confidence: 0 };
-  let calibrationMode: "NEUTRAL" | GestureType | undefined;
-  let capturePhase: GestureCapturePhase = "IDLE";
-  let faceDetected = false;
-  let classifierConfigured = false;
-  let animationHandle: number | undefined;
+  let runtime: MotionBridgeRuntimeStatus = { cameraActive: false, faceDetected: false, backendConnected: false };
+  let frameTimer: number | undefined;
   let stopped = false;
 
-  const classifier = new GestureClassifier({
-    ...options.classifier,
-    onGesture: (prediction) => {
-      if (prediction.label === "NEXT") emitter.emitNext(prediction.confidence);
-      if (prediction.label === "SELECT") emitter.emitSelect(prediction.confidence);
+  const client = new PythonVisionClient({
+    url: options.backendUrl ?? defaultBackendUrl(),
+    onPrediction: (prediction) => {
+      latestPrediction = prediction;
+      runtime.faceDetected = Boolean(runtime.faceDetected);
     },
-    onNeutral: () => emitter.emitNeutral(),
+    onProgress: (message) => {
+      progress = {
+        neutral: message.neutral,
+        next: message.next,
+        select: message.select,
+        neutralRequired: message.neutralRequired,
+        gestureRequired: message.gestureRequired,
+      };
+      mode = message.mode === "NEUTRAL" || message.mode === "NEXT" || message.mode === "SELECT" ? message.mode : "IDLE";
+      phase = message.phase as CalibrationState["phase"];
+      quality = { next: message.nextQuality, select: message.selectQuality };
+      issue = message.issue;
+      ready = message.ready;
+    },
+    onEvent: (event) => {
+      if (event.command === "NEXT") emitter.emitNext(event.confidence);
+      else if (event.command === "SELECT") emitter.emitSelect(event.confidence);
+      else emitter.emitNeutral();
+    },
+    onRuntime: (status) => {
+      runtime = { ...runtime, ...status };
+    },
+    onError: (message) => {
+      issue = message;
+    },
   });
 
+  await camera.startCamera();
+  runtime.cameraActive = camera.isCameraActive();
   try {
-    await camera.startCamera();
-    await tracker.initializeModel();
+    await client.connect();
+    const frameRate = Math.max(5, Math.min(15, options.frameRate ?? 12));
+    frameTimer = window.setInterval(() => {
+      if (stopped) return;
+      try {
+        client.sendFrame(camera.captureJpeg());
+      } catch {
+        runtime.cameraActive = camera.isCameraActive();
+      }
+    }, 1000 / frameRate);
   } catch (error) {
-    camera.stopCamera();
-    throw error;
+    issue = error instanceof Error ? error.message : "Python vision backend unavailable.";
   }
 
   const controller: MotionBridgeController = {
     beginNeutralCalibration: () => {
-      calibration.resetCalibration();
-      classifier.resetTriggerState();
-      classifierConfigured = false;
-      calibrationMode = "NEUTRAL";
-      capturePhase = "COLLECTING";
+      mode = "NEUTRAL";
+      phase = "COLLECTING";
       latestPrediction = { label: "UNKNOWN", confidence: 0 };
+      client.beginCalibration("NEUTRAL");
     },
     beginGestureCalibration: (type) => {
-      const progress = calibration.getProgress();
-      if (progress.neutral < progress.neutralRequired) {
-        throw new MotionBridgeError("INVALID_FEATURES", "Capture neutral samples before teaching a gesture.");
-      }
-      calibration.resetGesture(type);
-      classifier.resetTriggerState();
-      classifierConfigured = false;
-      calibrationMode = type;
-      capturePhase = "COLLECTING";
+      mode = type;
+      phase = "COLLECTING";
       latestPrediction = { label: "UNKNOWN", confidence: 0 };
+      client.beginCalibration(type);
     },
-    getCalibrationProgress: () => calibration.getProgress(),
-    getCalibrationState: () => {
-      const progress = calibration.getProgress();
-      const ready = calibrationMode === undefined && calibration.isCalibrationComplete();
-      const enoughGestures = progress.next >= progress.gestureRequired && progress.select >= progress.gestureRequired;
-      return {
-        mode: calibrationMode ?? "IDLE",
-        phase: capturePhase,
-        progress,
-        nextSeparability: calibration.getSeparability("NEXT"),
-        selectSeparability: calibration.getSeparability("SELECT"),
-        ready,
-        issue: !ready && enoughGestures
-          ? "These gestures are difficult to distinguish. Please recalibrate SELECT."
-          : undefined,
-      };
-    },
-    getRuntimeStatus: () => ({ cameraActive: camera.isCameraActive(), faceDetected }),
+    getCalibrationProgress: () => ({ ...progress }),
+    getCalibrationState: () => ({
+      mode,
+      phase,
+      progress: { ...progress },
+      nextSeparability: quality.next,
+      selectSeparability: quality.select,
+      ready,
+      issue,
+    }),
+    getRuntimeStatus: () => ({ ...runtime, cameraActive: camera.isCameraActive() }),
     getLatestPrediction: () => ({ ...latestPrediction }),
-    isReady: () => calibrationMode === undefined && calibration.isCalibrationComplete(),
+    isReady: () => ready,
     stop: () => {
       if (stopped) return;
       stopped = true;
-      if (animationHandle !== undefined) cancelAnimationFrame(animationHandle);
+      if (frameTimer !== undefined) window.clearInterval(frameTimer);
+      client.close();
       camera.stopCamera();
       emitter.unsubscribe(onCommand);
+      runtime.cameraActive = false;
     },
   };
-
-  const processLoop = (): void => {
-    if (stopped) return;
-    try {
-      const features = tracker.processFrame(camera.getCurrentFrame());
-      faceDetected = true;
-      if (calibrationMode) {
-        if (calibrationMode === "NEUTRAL") {
-          calibration.captureNeutral(features.vector);
-        } else {
-          const normalized = calibration.normalizeFeatures(features.vector);
-          const movementMagnitude = rootMeanSquare(normalized);
-          if (capturePhase === "COLLECTING" && movementMagnitude >= 2.5) {
-            calibration.captureGesture(calibrationMode, features.vector);
-            capturePhase = "WAITING_FOR_NEUTRAL";
-          } else if (capturePhase === "WAITING_FOR_NEUTRAL" && movementMagnitude <= 1.1) {
-            capturePhase = "COLLECTING";
-          }
-        }
-        const progress = calibration.getProgress();
-        if (
-          (calibrationMode === "NEUTRAL" && progress.neutral >= progress.neutralRequired) ||
-          (calibrationMode !== "NEUTRAL" &&
-            capturePhase === "COLLECTING" &&
-            progress[calibrationMode.toLowerCase() as "next" | "select"] >= progress.gestureRequired)
-        ) {
-          calibrationMode = undefined;
-          capturePhase = "IDLE";
-        }
-      } else if (calibration.isCalibrationComplete()) {
-        if (!classifierConfigured) {
-          classifier.setPrototypes({
-            neutral: calibration.getPrototype("NEUTRAL"),
-            next: calibration.getPrototype("NEXT"),
-            select: calibration.getPrototype("SELECT"),
-          });
-          classifierConfigured = true;
-        }
-        latestPrediction = classifier.update(calibration.normalizeFeatures(features.vector));
-      } else {
-        latestPrediction = { label: "UNKNOWN", confidence: 0 };
-      }
-    } catch (error) {
-      faceDetected = !(error instanceof MotionBridgeError && error.code === "NO_FACE_DETECTED")
-        ? faceDetected
-        : false;
-      if (!(error instanceof MotionBridgeError && error.code === "NO_FACE_DETECTED")) {
-        latestPrediction = { label: "UNKNOWN", confidence: 0 };
-      }
-    }
-    animationHandle = requestAnimationFrame(processLoop);
-  };
-
-  animationHandle = requestAnimationFrame(processLoop);
   return controller;
 }
 
-function rootMeanSquare(values: number[]): number {
-  if (!values.length) return 0;
-  return Math.sqrt(values.reduce((sum, value) => sum + value * value, 0) / values.length);
+function defaultBackendUrl(): string {
+  if (typeof window === "undefined") return "ws://127.0.0.1:8000/ws/vision";
+  const hostname = window.location.hostname || "127.0.0.1";
+  const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  const port = window.location.port === "5173" ? ":8000" : window.location.port ? `:${window.location.port}` : "";
+  return `${protocol}//${hostname}${port}/ws/vision`;
 }
