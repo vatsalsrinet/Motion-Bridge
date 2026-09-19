@@ -64,10 +64,10 @@ export class GestureClassifier {
       return { label: "UNKNOWN", confidence: 0 };
     }
 
-    const candidates: Array<{ label: GestureLabel; distance: number }> = [
-      { label: "NEUTRAL", distance: this.calculateDistance(features, this.prototypes.neutral) },
-      { label: "NEXT", distance: this.calculateDistance(features, this.prototypes.next) },
-      { label: "SELECT", distance: this.calculateDistance(features, this.prototypes.select) },
+    const candidates = [
+      { label: "NEUTRAL" as GestureLabel, distance: this.calculateDistance(features, this.prototypes.neutral) },
+      { label: "NEXT" as GestureLabel, distance: this.calculateDistance(features, this.prototypes.next) },
+      { label: "SELECT" as GestureLabel, distance: this.calculateDistance(features, this.prototypes.select) },
     ].sort((a, b) => a.distance - b.distance);
     const closest = candidates[0];
     const confidence = this.calculateConfidence(closest.distance);
