@@ -27,16 +27,18 @@ export const CampusAgentPage = ({
 
   // Person 4's brief is explicit: do not misrepresent fallback data as live.
   const provenance = mocked
-    ? "Demo mode: these results are canned sample data, not a live campus query."
+    ? "Demo mode · canned sample data, not a live campus query"
     : dataSource === "seed"
-      ? "Results come from a committed campus data snapshot. The live Databricks connection is not available."
+      ? "Seed data snapshot · live Databricks connection unavailable"
       : null;
 
   return (
     <div className="stack">
       <header>
         <p className="eyebrow">Campus search</p>
-        <h2 style={{ fontSize: "var(--text-2xl)" }}>Find an accessible space</h2>
+        <h2 className="display" style={{ fontSize: "var(--text-2xl)" }}>
+          Find an <em>accessible space.</em>
+        </h2>
       </header>
 
       <SearchPanel
@@ -49,19 +51,24 @@ export const CampusAgentPage = ({
       {loading && (
         <div className="loading">
           <span className="loading__spinner" aria-hidden="true" />
-          <span>Checking campus data…</span>
+          <span>Checking campus data</span>
         </div>
       )}
 
       {!loading && error && (
         <div className="notice notice--error" role="alert">
           <p className="notice__title">
-            <span aria-hidden="true">!</span> Search failed
+            <span className="notice__bang" aria-hidden="true">
+              !
+            </span>
+            Search failed
           </p>
           <p className="notice__body">{error.error}</p>
-          <p className="notice__code">{error.code}</p>
+          <p className="notice__code">
+            {error.code} {error.retryable ? "· retryable" : ""}
+          </p>
           {error.retryable && (
-            <button type="button" className="button" onClick={() => onSubmit(query)}>
+            <button type="button" className="button button--primary" onClick={() => onSubmit(query)}>
               Try again
             </button>
           )}
@@ -70,10 +77,10 @@ export const CampusAgentPage = ({
 
       {!loading && !error && hasSearched && results.length === 0 && (
         <div className="notice">
-          <p className="notice__title">No matching spaces</p>
+          <p className="notice__title">Nothing matched</p>
           <p className="notice__body">
             {agentMessage ||
-              "Nothing on campus matched all of those constraints. Try relaxing one of them."}
+              "No campus space matched every constraint. Try relaxing one of them."}
           </p>
         </div>
       )}
@@ -82,18 +89,21 @@ export const CampusAgentPage = ({
         <>
           {agentMessage && (
             <div className="agent-message">
-              <div>
-                <p className="agent-message__label">Campus agent</p>
-                <p>{agentMessage}</p>
-              </div>
+              <p className="agent-message__label">Campus agent</p>
+              <p className="agent-message__body">{agentMessage}</p>
             </div>
           )}
 
           <div>
             {provenance && <p className="provenance">{provenance}</p>}
-            <p className="search__hint">
-              Perform NEXT to move the focus, SELECT to open. Arrow keys and Enter work too.
-            </p>
+
+            <div className="results__head">
+              <span className="label">
+                {results.length} {results.length === 1 ? "result" : "results"}
+              </span>
+              <span className="label">Next moves focus &#183; Select opens</span>
+            </div>
+
             <ResultsList
               results={results}
               selectedIndex={selectedIndex}

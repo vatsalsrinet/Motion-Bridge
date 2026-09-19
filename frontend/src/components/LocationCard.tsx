@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { AccessibilityBadges } from "./AccessibilityBadges";
+import { ImpactWarning } from "./ImpactWarning";
 import type { CampusLocation } from "../types/contracts";
 
 interface LocationCardProps {
@@ -10,11 +11,6 @@ interface LocationCardProps {
   onFocus: () => void;
   onSelect: () => void;
 }
-
-const formatHours = (location: CampusLocation): string | null => {
-  if (!location.openTime || !location.closeTime) return null;
-  return `${location.openTime} – ${location.closeTime}`;
-};
 
 /**
  * One result. Rendered as an option in a listbox: the list owns focus and
@@ -30,8 +26,8 @@ export const LocationCard = ({
   onSelect
 }: LocationCardProps) => {
   const ref = useRef<HTMLLIElement>(null);
-  const hours = formatHours(location);
-  const impactCount = location.activeImpacts.length;
+  const hours =
+    location.openTime && location.closeTime ? `${location.openTime}–${location.closeTime}` : null;
 
   // Keep the focused card on screen as gestures walk down a long list.
   useEffect(() => {
@@ -54,25 +50,22 @@ export const LocationCard = ({
     >
       <div className="card__head">
         <span className="card__index">
-          {index + 1}
-          <span aria-hidden="true">/{total}</span>
+          {String(index + 1).padStart(2, "0")}
           <span className="sr-only"> of {total}</span>
         </span>
         <h3 className="card__name">{location.name}</h3>
         {focused && <span className="card__focus-flag">Focused</span>}
-      </div>
-
-      <div className="card__meta">
-        <span>{location.category}</span>
-        {hours && <span>Open {hours}</span>}
-        {impactCount > 0 && (
-          <span>
-            {impactCount} active {impactCount === 1 ? "impact" : "impacts"}
-          </span>
-        )}
+        <span className="card__meta">
+          {location.category}
+          {hours && ` · ${hours}`}
+        </span>
       </div>
 
       <AccessibilityBadges info={location.accessibility} />
+
+      {location.activeImpacts.map((impact, impactIndex) => (
+        <ImpactWarning key={impact.id ?? `${impact.type}-${impactIndex}`} impact={impact} />
+      ))}
     </li>
   );
 };

@@ -20,17 +20,17 @@ const formatImpactType = (type: string): string => {
   return GENERIC_TYPES.has(trimmed.toLowerCase()) ? `${capitalized} impact` : capitalized;
 };
 
-/** An active accessibility impact. Marked up as a warning, not decoration. */
 export const ImpactWarning = ({ impact }: ImpactWarningProps) => (
   <div className="impact">
     <span className="impact__icon" aria-hidden="true">
       !
     </span>
     <div>
-      <p className="impact__type">
+      <p className="impact__label">
         <span className="sr-only">Warning: </span>
-        {formatImpactType(impact.type)}
+        Active impact
       </p>
+      <p className="impact__type">{formatImpactType(impact.type)}</p>
       <p className="impact__description">{impact.description}</p>
     </div>
   </div>

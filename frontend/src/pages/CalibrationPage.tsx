@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import type { ReactNode } from "react";
 import { CalibrationPanel } from "../components/CalibrationPanel";
 import type { CalibrationStage } from "../types/motionBridge";
 
@@ -14,29 +15,45 @@ interface CalibrationPageProps {
   onStart: () => void;
   onContinue: () => void;
   onSkip: () => void;
-  camera: React.ReactNode;
+  camera: ReactNode;
 }
 
-const COPY: Record<CalibrationStage, { eyebrow: string; title: string; instruction: string; unit: string }> = {
+const STAGES: CalibrationStage[] = ["NEUTRAL", "NEXT", "SELECT"];
+
+const COPY: Record<
+  CalibrationStage,
+  { step: string; rail: string; title: ReactNode; instruction: string; unit: string }
+> = {
   NEUTRAL: {
-    eyebrow: "Step 1 of 3",
-    title: "Hold still for a moment",
+    step: "Step 01 of 03",
+    rail: "Neutral",
+    title: <>Hold still for a moment</>,
     instruction:
       "Look at the camera and keep your face relaxed and still. MotionBridge is learning what your resting position looks like, so it can tell when you move on purpose.",
-    unit: "neutral samples captured"
+    unit: "Neutral samples captured"
   },
   NEXT: {
-    eyebrow: "Step 2 of 3",
-    title: "Teach your NEXT movement",
+    step: "Step 02 of 03",
+    rail: "Next",
+    title: (
+      <>
+        Teach your <em>NEXT</em> movement
+      </>
+    ),
     instruction:
-      "Choose any small movement you can repeat comfortably — a head tilt, a raised eyebrow, a look to one side. Perform it, return to rest, and repeat. This movement will move the focus between results.",
+      "Perform it, return to rest, and repeat. Pick something you can do comfortably many times over — a head tilt, a raised eyebrow, a glance to one side.",
     unit: "NEXT samples captured"
   },
   SELECT: {
-    eyebrow: "Step 3 of 3",
-    title: "Teach your SELECT movement",
+    step: "Step 03 of 03",
+    rail: "Select",
+    title: (
+      <>
+        Teach your <em>SELECT</em> movement
+      </>
+    ),
     instruction:
-      "Now choose a clearly different movement. The more distinct it is from your NEXT movement, the more reliably MotionBridge can tell them apart. This one opens the focused result.",
+      "Now choose a clearly different movement. The more distinct it is from your NEXT movement, the more reliably MotionBridge can tell them apart.",
     unit: "SELECT samples captured"
   }
 };
@@ -54,6 +71,7 @@ export const CalibrationPage = ({
   camera
 }: CalibrationPageProps) => {
   const copy = COPY[stage];
+  const currentIndex = STAGES.indexOf(stage);
 
   // Begin capturing once this stage is on screen *and* the tracker is running.
   // The camera takes a moment to come up, so starting on mount alone would
@@ -65,45 +83,82 @@ export const CalibrationPage = ({
   }, [stage, ready]);
 
   return (
-    <div className="calibration">
-      <div>{camera}</div>
+    <>
+      <ol className="steps">
+        {STAGES.map((item, index) => {
+          const done = index < currentIndex;
+          const current = index === currentIndex;
+          const state = done ? "Done" : current ? "Now" : "";
+          return (
+            <li
+              key={item}
+              className={
+                done
+                  ? "steps__item steps__item--done"
+                  : current
+                    ? "steps__item steps__item--current"
+                    : "steps__item"
+              }
+              aria-current={current ? "step" : undefined}
+            >
+              <div className="steps__bar" />
+              <span className="steps__label">
+                {String(index + 1).padStart(2, "0")} {COPY[item].rail}
+                {state && ` · ${state}`}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
 
-      <div className="stack">
+      <div className="calibration">
         <div>
-          <p className="eyebrow">{copy.eyebrow}</p>
-          <h2 style={{ fontSize: "var(--text-xl)" }}>{copy.title}</h2>
+          {camera}
+          <p className="camera__note">
+            Nothing leaves your device. Frames are processed in the browser.
+          </p>
+        </div>
+
+        <div>
+          <p className="eyebrow">{copy.step}</p>
+          <h2 className="display" style={{ fontSize: "var(--text-xl)" }}>
+            {copy.title}
+          </h2>
           <p className="calibration__instruction">{copy.instruction}</p>
-        </div>
 
-        <CalibrationPanel captured={captured} required={required} unit={copy.unit} />
+          <CalibrationPanel captured={captured} required={required} unit={copy.unit} />
 
-        {error && (
-          <div className="notice notice--error" role="alert">
-            <p className="notice__title">
-              <span aria-hidden="true">!</span> Calibration problem
-            </p>
-            <p className="notice__body">{error}</p>
+          {error && (
+            <div className="notice notice--error" role="alert" style={{ marginTop: "var(--space-5)" }}>
+              <p className="notice__title">
+                <span className="notice__bang" aria-hidden="true">
+                  !
+                </span>
+                Calibration problem
+              </p>
+              <p className="notice__body">{error}</p>
+            </div>
+          )}
+
+          <div className="row" style={{ marginTop: "var(--space-6)", gap: "var(--space-5)" }}>
+            <button
+              type="button"
+              className="button button--primary"
+              onClick={onContinue}
+              disabled={!complete}
+            >
+              {complete ? "Continue" : ready ? "Waiting for samples" : "Starting camera"}
+            </button>
+            <button type="button" className="button button--ghost" onClick={onSkip}>
+              Skip this step
+            </button>
           </div>
-        )}
 
-        <div className="row">
-          <button
-            type="button"
-            className="button button--primary"
-            onClick={onContinue}
-            disabled={!complete}
-          >
-            {complete ? "Continue" : ready ? "Waiting for samples…" : "Starting camera…"}
-          </button>
-          <button type="button" className="button button--ghost" onClick={onSkip}>
-            Skip this step
-          </button>
+          <p className="camera__note">
+            Skipping is fine — the keyboard controls work regardless of calibration.
+          </p>
         </div>
-
-        <p className="search__hint">
-          Skipping is fine — the keyboard controls work regardless of calibration.
-        </p>
       </div>
-    </div>
+    </>
   );
 };

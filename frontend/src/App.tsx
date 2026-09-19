@@ -145,7 +145,8 @@ export const App = () => {
 
       <header className="header">
         <p className="header__brand">
-          <span className="header__mark">◆</span> MotionBridge
+          <span className="header__mark" aria-hidden="true" />
+          MotionBridge
         </p>
         <p className="header__step">{STEP_LABEL[state.screen]}</p>
       </header>

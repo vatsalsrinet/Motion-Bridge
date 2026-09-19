@@ -5,30 +5,26 @@ interface AccessibilityBadgesProps {
   showNotes?: boolean;
 }
 
-const FEATURES: { key: keyof AccessibilityInfo; label: string }[] = [
-  { key: "accessibleEntrance", label: "Accessible entrance" },
-  { key: "automaticDoor", label: "Automatic door" },
-  { key: "elevatorAvailable", label: "Elevator" },
-  { key: "accessibleRoute", label: "Accessible route" }
+const FEATURES: { key: keyof AccessibilityInfo; label: string; absent: string }[] = [
+  { key: "accessibleEntrance", label: "Accessible entrance", absent: "No accessible entrance" },
+  { key: "automaticDoor", label: "Automatic door", absent: "No automatic door" },
+  { key: "elevatorAvailable", label: "Elevator", absent: "No elevator" },
+  { key: "accessibleRoute", label: "Accessible route", absent: "No accessible route" }
 ];
 
 /**
- * Each feature states its answer three ways — icon, word and border — so the
- * information never depends on colour alone.
+ * Present and absent features differ by glyph, by wording and by border
+ * style, so the distinction survives with no colour perception at all.
  */
 export const AccessibilityBadges = ({ info, showNotes = false }: AccessibilityBadgesProps) => (
   <>
     <ul className="badges">
-      {FEATURES.map(({ key, label }) => {
+      {FEATURES.map(({ key, label, absent }) => {
         const present = Boolean(info[key]);
         return (
-          <li key={key} className={present ? "badge badge--yes" : "badge badge--no"}>
-            <span className="badge__icon" aria-hidden="true">
-              {present ? "✓" : "✕"}
-            </span>
-            <span>
-              {label}: {present ? "yes" : "no"}
-            </span>
+          <li key={key} className={present ? "badge" : "badge badge--no"}>
+            <span aria-hidden="true">{present ? "✓" : "✗"}</span>
+            <span>{present ? label : absent}</span>
           </li>
         );
       })}

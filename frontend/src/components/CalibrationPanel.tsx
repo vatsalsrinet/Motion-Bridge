@@ -1,13 +1,14 @@
 interface CalibrationPanelProps {
   captured: number;
   required: number;
-  /** Shown as the progress caption, e.g. "samples captured". */
+  /** Shown as the progress caption, e.g. "NEXT samples captured". */
   unit: string;
 }
 
 /**
- * Sample progress. Shows the ratio as text and as a row of dots, and exposes
- * it as a progressbar so the count is available to assistive tech too.
+ * Sample progress. Shows the ratio as a large mono count and as a row of
+ * bars, and exposes it as a progressbar so the count reaches assistive tech
+ * too.
  */
 export const CalibrationPanel = ({ captured, required, unit }: CalibrationPanelProps) => {
   const safeRequired = Math.max(required, 1);
@@ -15,18 +16,21 @@ export const CalibrationPanel = ({ captured, required, unit }: CalibrationPanelP
 
   return (
     <div
+      className="samples"
       role="progressbar"
       aria-valuenow={clamped}
       aria-valuemin={0}
       aria-valuemax={safeRequired}
       aria-valuetext={`${clamped} of ${safeRequired} ${unit}`}
     >
-      <p className="samples__count">
-        {clamped} <span>/ {safeRequired}</span>
-      </p>
-      <p className="search__hint">{unit}</p>
+      <div className="samples__head">
+        <span className="label">{unit}</span>
+        <p className="samples__count">
+          <strong>{clamped}</strong> / {safeRequired}
+        </p>
+      </div>
 
-      <ul className="samples" aria-hidden="true">
+      <ul className="samples__dots" aria-hidden="true">
         {Array.from({ length: safeRequired }, (_, index) => (
           <li
             key={index}

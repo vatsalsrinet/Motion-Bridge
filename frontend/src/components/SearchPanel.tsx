@@ -22,18 +22,15 @@ export const SearchPanel = ({ query, loading, onQueryChange, onSubmit }: SearchP
   };
 
   return (
-    <section className="panel" aria-labelledby="search-heading">
+    <section aria-labelledby="search-heading">
       <h2 id="search-heading" className="sr-only">
         Search campus spaces
       </h2>
 
       <form onSubmit={handleSubmit}>
         <label className="search__label" htmlFor="campus-query">
-          What are you looking for on campus?
+          What are you looking for?
         </label>
-        <p className="search__hint" id="campus-query-hint">
-          Ask in your own words. Mention accessibility needs and when you need the space.
-        </p>
 
         <div className="search__field">
           <input
@@ -50,12 +47,16 @@ export const SearchPanel = ({ query, loading, onQueryChange, onSubmit }: SearchP
           />
           <button
             type="submit"
-            className="button button--primary"
+            className="button button--primary search__submit"
             disabled={loading || query.trim().length === 0}
           >
-            {loading ? "Searching…" : "Search"}
+            {loading ? "Searching" : "Search"}
           </button>
         </div>
+
+        <p className="search__hint" id="campus-query-hint">
+          Ask in your own words. Mention accessibility needs and when you need the space.
+        </p>
       </form>
 
       <div className="suggestions">

@@ -1,36 +1,57 @@
 /*
- * Design tokens. Dark-first, because the demo is read from across a room and
- * on a projector. Contrast ratios against --bg noted where they matter.
+ * Design tokens.
+ *
+ * Virginia Tech's real palette on warm paper. Each colour has exactly one
+ * job — maroon is brand, focus and affirmative; orange is the live state and
+ * warnings, nothing else. A colour that means something everywhere means
+ * nothing, and that discipline is what keeps the UI quiet.
  */
 :root {
-  /* Virginia Tech palette, adapted for dark surfaces */
-  --vt-maroon: #861f41;
-  --vt-maroon-bright: #b02a55;
-  --vt-orange: #e5751f;
-  --vt-orange-bright: #ff9640;
+  color-scheme: light;
 
-  --bg: #0f1115;
-  --surface: #171a21;
-  --surface-raised: #1f2430;
-  --surface-sunken: #0b0d11;
+  /* Surfaces — warm, never clinical white */
+  --paper: #fbf9f6;
+  --paper-alt: #f3efea;
+  --paper-sunk: #efe9e2;
 
-  --text: #f5f6f8;          /* 16.8:1 on --bg */
-  --text-muted: #a8b0bd;    /*  7.3:1 on --bg */
-  --text-faint: #7b8494;    /*  4.6:1 on --bg */
+  /* Ink — warm near-black, and a grey ramp warmed to match */
+  --ink: #1a1614;        /* 15.9:1 on --paper */
+  --ink-soft: #514840;   /*  8.0:1 */
+  --ink-mute: #6b625c;   /*  5.4:1 */
+  --ink-faint: #9a8f85;  /*  2.9:1 — decorative and large text only */
 
-  --border: #2b313d;
-  --border-strong: #3d4552;
+  --rule: #e2dbd3;
+  --rule-strong: #cfc5ba;
 
-  --accent: var(--vt-orange-bright); /* 8.1:1 on --bg */
-  --accent-dim: var(--vt-orange);
-  --focus-ring: #ff9640;
+  /* Brand: focus, primary action, affirmatives */
+  --maroon: #861f41;       /* 9.3:1 on --paper */
+  --maroon-deep: #6b1934;
+  --maroon-line: #a85a76;  /* borders on a maroon fill */
+  --maroon-div: #9c4c68;
+  --on-maroon: #fbf9f6;      /* 8.6:1 on --maroon */
+  --on-maroon-soft: #e8cdd6;
+  --on-maroon-faint: #f0dde4;
 
-  --success: #4ade80;
-  --success-dim: #166534;
-  --warning: #fbbf24;
-  --warning-dim: #78350f;
-  --danger: #f87171;
-  --danger-dim: #7f1d1d;
+  /* Live state and warnings only */
+  --orange: #e5751f;       /* graphic use only — 2.9:1, fails as text */
+  --orange-text: #b4551a;  /* 4.6:1 — use whenever orange must be words */
+
+  /* Keyboard focus. Maroon reads clearly on paper and against the
+     maroon card, which is never itself focusable. */
+  --focus: #861f41;
+
+  --font-display: "Instrument Serif", Georgia, serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.3125rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.5rem;
+  --text-3xl: 3.5rem;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -39,39 +60,25 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
   --space-7: 3rem;
-  --space-8: 4rem;
+  --space-8: 4.5rem;
 
-  --radius-sm: 6px;
-  --radius: 12px;
-  --radius-lg: 18px;
+  /* Sharp corners throughout: the single strongest signal that this was
+     drawn on purpose rather than generated. */
+  --radius: 0;
 
-  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-
-  --text-xs: 0.8125rem;
-  --text-sm: 0.9375rem;
-  --text-base: 1.0625rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.625rem;
-  --text-2xl: 2.25rem;
-  --text-3xl: 3rem;
-
-  /* Minimum comfortable hit target */
   --tap: 44px;
+  --transition: 160ms cubic-bezier(0.2, 0, 0.2, 1);
 
-  --transition: 180ms cubic-bezier(0.2, 0, 0.2, 1);
-  --transition-slow: 320ms cubic-bezier(0.2, 0, 0.2, 1);
-
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+  /* Mono label: the recurring device that makes this read as an
+     instrument rather than a landing page. */
+  --label-size: 0.6875rem;
+  --label-tracking: 0.16em;
 }
 
-/* Respect the OS setting: no motion, but never hide state changes. */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --transition: 1ms;
-    --transition-slow: 1ms;
   }
-
   *,
   *::before,
   *::after {
