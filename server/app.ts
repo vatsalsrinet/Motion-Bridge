@@ -1,0 +1,34 @@
+import cors from "cors";
+import express, { Express } from "express";
+import { AgentController } from "./controllers/AgentController";
+import { config } from "./config";
+import { errorHandler } from "./middleware/errorHandler";
+import { requestLogger } from "./middleware/requestLogger";
+import { createAgentRouter } from "./routes/agent";
+import { createHealthRouter } from "./routes/health";
+import { CampusAgentService } from "./services/CampusAgentService";
+import { DatabricksService } from "./services/DatabricksService";
+import { CampusAgent } from "./types/agent";
+
+export const createApp = (
+  campusAgent: CampusAgent = new CampusAgentService(),
+  databricksService: DatabricksService = new DatabricksService(
+    {
+      host: config.databricksHost,
+      token: config.databricksToken,
+      warehouseId: config.databricksWarehouseId
+    }
+  )
+): Express => {
+  const app = express();
+  const agentController = new AgentController(campusAgent);
+
+  app.use(cors({ origin: config.frontendOrigin }));
+  app.use(express.json());
+  app.use(requestLogger);
+  app.use("/api/health", createHealthRouter(databricksService));
+  app.use("/api/agent", createAgentRouter(agentController));
+  app.use(errorHandler);
+
+  return app;
+};
