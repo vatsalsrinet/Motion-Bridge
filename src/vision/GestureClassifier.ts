@@ -1,11 +1,19 @@
 import { euclideanDistance } from "./CalibrationManager";
-import type { GestureLabel, GesturePrediction, GestureType } from "./types";
+import type {
+  GestureClassDistances,
+  GestureClassScores,
+  GestureLabel,
+  GesturePrediction,
+  GestureType,
+} from "./types";
 
 export type GestureClassifierOptions = {
   confidenceThreshold?: number;
   neutralConfidenceThreshold?: number;
   unknownDistance?: number;
   confidenceDistanceScale?: number;
+  scoreTemperature?: number;
+  minimumScoreSeparation?: number;
   stableDurationMs?: number;
   cooldownMs?: number;
   neutralDistance?: number;
@@ -25,6 +33,8 @@ export class GestureClassifier {
   readonly neutralConfidenceThreshold: number;
   readonly unknownDistance: number;
   readonly confidenceDistanceScale: number;
+  readonly scoreTemperature: number;
+  readonly minimumScoreSeparation: number;
   readonly stableDurationMs: number;
   readonly cooldownMs: number;
   readonly neutralDistance: number;
@@ -39,7 +49,9 @@ export class GestureClassifier {
     this.confidenceThreshold = options.confidenceThreshold ?? 0.65;
     this.neutralConfidenceThreshold = options.neutralConfidenceThreshold ?? 0.55;
     this.unknownDistance = options.unknownDistance ?? 7;
-    this.confidenceDistanceScale = options.confidenceDistanceScale ?? 3;
+    this.confidenceDistanceScale = options.confidenceDistanceScale ?? 6;
+    this.scoreTemperature = options.scoreTemperature ?? 1.5;
+    this.minimumScoreSeparation = options.minimumScoreSeparation ?? 0.12;
     this.stableDurationMs = options.stableDurationMs ?? 250;
     this.cooldownMs = options.cooldownMs ?? 700;
     this.neutralDistance = options.neutralDistance ?? 2.25;
@@ -64,21 +76,37 @@ export class GestureClassifier {
       return { label: "UNKNOWN", confidence: 0 };
     }
 
-    const candidates = [
-      { label: "NEUTRAL" as GestureLabel, distance: this.calculateDistance(features, this.prototypes.neutral) },
-      { label: "NEXT" as GestureLabel, distance: this.calculateDistance(features, this.prototypes.next) },
-      { label: "SELECT" as GestureLabel, distance: this.calculateDistance(features, this.prototypes.select) },
-    ].sort((a, b) => a.distance - b.distance);
-    const closest = candidates[0];
-    const confidence = this.calculateConfidence(closest.distance);
-    const isNeutral = closest.label === "NEUTRAL" && closest.distance <= this.neutralDistance;
-    if (isNeutral && confidence >= this.neutralConfidenceThreshold) {
-      return { label: "NEUTRAL", confidence, distance: closest.distance };
-    }
-    if (closest.label !== "NEUTRAL" && closest.distance <= this.unknownDistance && confidence >= this.confidenceThreshold) {
-      return { label: closest.label as GestureLabel, confidence, distance: closest.distance };
-    }
-    return { label: "UNKNOWN", confidence, distance: closest.distance };
+    const distances: GestureClassDistances = {
+      NEUTRAL: this.calculateDistance(features, this.prototypes.neutral),
+      NEXT: this.calculateDistance(features, this.prototypes.next),
+      SELECT: this.calculateDistance(features, this.prototypes.select),
+    };
+    const labels: Array<keyof GestureClassDistances> = ["NEUTRAL", "NEXT", "SELECT"];
+    const weights = labels.map((label) => Math.exp(-distances[label] / this.scoreTemperature));
+    const weightTotal = weights.reduce((sum, value) => sum + value, 0);
+    const probabilities = weights.map((weight) => weight / weightTotal);
+    const ranked = labels
+      .map((label, index) => ({ label, probability: probabilities[index], distance: distances[label] }))
+      .sort((a, b) => b.probability - a.probability);
+    const winner = ranked[0];
+    const runnerUp = ranked[1];
+    const confidence = winner.probability * this.calculateConfidence(winner.distance);
+    const classScores: GestureClassScores = {
+      NEUTRAL: Math.round(probabilities[0] * 100),
+      NEXT: Math.round(probabilities[1] * 100),
+      SELECT: Math.round(probabilities[2] * 100),
+    };
+    const hasMatch =
+      winner.distance <= this.unknownDistance &&
+      confidence >= (winner.label === "NEUTRAL" ? this.neutralConfidenceThreshold : this.confidenceThreshold) &&
+      winner.probability - runnerUp.probability >= this.minimumScoreSeparation;
+    return {
+      label: hasMatch ? winner.label : "UNKNOWN",
+      confidence,
+      distance: winner.distance,
+      classScores,
+      distances,
+    };
   }
 
   calculateDistance(a: number[], b: number[]): number {
@@ -87,6 +115,8 @@ export class GestureClassifier {
 
   calculateConfidence(distance: number): number {
     if (!Number.isFinite(distance) || distance < 0) return 0;
+    // Absolute match quality. classify() combines this with relative class
+    // probability so a close tie or a far-away vector cannot look confident.
     return Math.max(0, Math.min(1, Math.exp(-distance / this.confidenceDistanceScale)));
   }
 

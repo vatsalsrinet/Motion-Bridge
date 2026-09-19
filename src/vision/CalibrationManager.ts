@@ -27,7 +27,7 @@ export class CalibrationManager {
   constructor(options: CalibrationManagerOptions = {}) {
     this.neutralRequired = options.neutralRequired ?? DEFAULT_NEUTRAL_REQUIRED;
     this.gestureRequired = options.gestureRequired ?? DEFAULT_GESTURE_REQUIRED;
-    this.minimumPrototypeDistance = options.minimumPrototypeDistance ?? 0.12;
+    this.minimumPrototypeDistance = options.minimumPrototypeDistance ?? 1.25;
   }
 
   captureNeutral(features: number[]): void {
@@ -81,6 +81,16 @@ export class CalibrationManager {
       return this.neutralVector.length ? this.neutralVector.map((value, index) => this.normalizeValue(value, index)) : [];
     }
     return this.calculateGesturePrototype(type);
+  }
+
+  /** A 0–100 measure of how far a gesture is from both neutral and the other gesture. */
+  getSeparability(type: GestureType): number {
+    const prototype = this.getPrototype(type);
+    const other = this.getPrototype(type === "NEXT" ? "SELECT" : "NEXT");
+    const neutral = this.getPrototype("NEUTRAL");
+    if (!prototype.length || !other.length || !neutral.length) return 0;
+    const nearestBoundary = Math.min(euclideanDistance(prototype, neutral), euclideanDistance(prototype, other));
+    return Math.round(Math.max(0, Math.min(100, (nearestBoundary / 4) * 100)));
   }
 
   isCalibrationComplete(): boolean {
@@ -146,6 +156,8 @@ function calculateScales(samples: readonly number[][], centroid: readonly number
   if (!samples.length) return [];
   return centroid.map((_, index) => {
     const variance = samples.reduce((total, sample) => total + (sample[index] - centroid[index]) ** 2, 0) / samples.length;
-    return Math.max(Math.sqrt(variance), 0.05);
+    // A floor prevents near-static blendshape/head-pose dimensions from
+    // dominating every distance when the user is naturally very still.
+    return Math.max(Math.sqrt(variance), 0.1);
   });
 }

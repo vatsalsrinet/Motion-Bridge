@@ -22,6 +22,20 @@ export type GesturePrediction = {
   label: GestureLabel;
   confidence: number;
   distance?: number;
+  classScores?: GestureClassScores;
+  distances?: GestureClassDistances;
+};
+
+export type GestureClassScores = {
+  NEUTRAL: number;
+  NEXT: number;
+  SELECT: number;
+};
+
+export type GestureClassDistances = {
+  NEUTRAL: number;
+  NEXT: number;
+  SELECT: number;
 };
 
 export type CalibrationProgress = {
@@ -30,6 +44,19 @@ export type CalibrationProgress = {
   select: number;
   neutralRequired: number;
   gestureRequired: number;
+};
+
+export type CalibrationMode = "IDLE" | "NEUTRAL" | GestureType;
+export type GestureCapturePhase = "IDLE" | "COLLECTING" | "WAITING_FOR_NEUTRAL";
+
+export type CalibrationState = {
+  mode: CalibrationMode;
+  phase: GestureCapturePhase;
+  progress: CalibrationProgress;
+  nextSeparability: number;
+  selectSeparability: number;
+  ready: boolean;
+  issue?: string;
 };
 
 export type MotionBridgeErrorCode =
@@ -69,5 +96,5 @@ export const DEFAULT_BLENDSHAPE_NAMES = [
   "noseSneerRight",
 ] as const;
 
-export const DEFAULT_NEUTRAL_REQUIRED = 45;
+export const DEFAULT_NEUTRAL_REQUIRED = 60;
 export const DEFAULT_GESTURE_REQUIRED = 5;
