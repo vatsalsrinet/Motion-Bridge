@@ -5,6 +5,7 @@ import time
 from typing import Literal
 
 import numpy as np
+from scipy.spatial.distance import euclidean
 
 from .config import DEFAULT_CONFIG, VisionConfig
 
@@ -128,13 +129,15 @@ class CalibrationManager:
         other = self._centroid("SELECT" if gesture == "NEXT" else "NEXT")
         if own is None or other is None:
             return 0
-        boundary = min(float(np.linalg.norm(own)), float(np.linalg.norm(own - other)))
+        boundary = min(float(euclidean(own, np.zeros_like(own))), float(euclidean(own, other)))
         return int(np.clip(boundary / 4.0 * 100.0, 0, 100))
 
     @property
     def ready(self) -> bool:
         return (
-            self.neutral_complete
+            self.mode == "IDLE"
+            and self.phase == "IDLE"
+            and self.neutral_complete
             and len(self.gesture_samples["NEXT"]) >= self.config.gesture_repetitions
             and len(self.gesture_samples["SELECT"]) >= self.config.gesture_repetitions
             and self.quality("NEXT") >= self.config.quality_threshold
@@ -143,7 +146,7 @@ class CalibrationManager:
 
     def status(self) -> CalibrationStatus:
         enough = len(self.gesture_samples["NEXT"]) >= self.config.gesture_repetitions and len(self.gesture_samples["SELECT"]) >= self.config.gesture_repetitions
-        issue = "NEXT and SELECT are too similar. Please recalibrate SELECT." if enough and not self.ready else None
+        issue = "NEXT and SELECT are too similar. Please recalibrate SELECT." if enough and self.mode == "IDLE" and not self.ready else None
         return CalibrationStatus(
             mode=self.mode,
             phase=self.phase,

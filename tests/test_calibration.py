@@ -38,5 +38,6 @@ def test_overlapping_gestures_fail_quality():
             calibration.observe(np.array([1.0, 0.0]), offset)
             calibration.observe(np.zeros(2), offset + 0.12)
             calibration.observe(np.zeros(2), offset + 0.13)
+    calibration.observe(np.zeros(2), 1.0)
     assert calibration.status().ready is False
     assert calibration.status().issue
