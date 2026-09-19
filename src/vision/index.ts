@@ -91,9 +91,11 @@ export async function startMotionBridge(
       classifierConfigured = false;
       calibrationMode = "NEUTRAL";
       capturePhase = "COLLECTING";
+      latestPrediction = { label: "UNKNOWN", confidence: 0 };
     },
     beginGestureCalibration: (type) => {
-      if (!calibration.calculateNeutralVector().length) {
+      const progress = calibration.getProgress();
+      if (progress.neutral < progress.neutralRequired) {
         throw new MotionBridgeError("INVALID_FEATURES", "Capture neutral samples before teaching a gesture.");
       }
       calibration.resetGesture(type);
@@ -101,6 +103,7 @@ export async function startMotionBridge(
       classifierConfigured = false;
       calibrationMode = type;
       capturePhase = "COLLECTING";
+      latestPrediction = { label: "UNKNOWN", confidence: 0 };
     },
     getCalibrationProgress: () => calibration.getProgress(),
     getCalibrationState: () => {

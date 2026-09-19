@@ -70,9 +70,11 @@ async function boot(): Promise<void> {
   }
 }
 
-$("#neutral-button").addEventListener("click", () => controllerState.controller?.beginNeutralCalibration());
-$("#next-button").addEventListener("click", () => controllerState.controller?.beginGestureCalibration("NEXT"));
-$("#select-button").addEventListener("click", () => controllerState.controller?.beginGestureCalibration("SELECT"));
+$("#neutral-button").addEventListener("click", () => {
+  controllerState.controller?.beginNeutralCalibration();
+});
+$("#next-button").addEventListener("click", () => beginGesture("NEXT"));
+$("#select-button").addEventListener("click", () => beginGesture("SELECT"));
 $("#reset-button").addEventListener("click", () => {
   controllerState.controller?.beginNeutralCalibration();
   controllerState.next = 0;
@@ -139,3 +141,11 @@ function updateMeter(name: string, value: number, total: number): void {
 }
 
 void boot();
+
+function beginGesture(type: "NEXT" | "SELECT"): void {
+  try {
+    controllerState.controller?.beginGestureCalibration(type);
+  } catch (error) {
+    $("#hint").textContent = error instanceof Error ? error.message : "Complete neutral calibration first.";
+  }
+}
