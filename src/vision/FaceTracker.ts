@@ -20,7 +20,7 @@ export type FaceTrackerOptions = {
 const DEFAULT_MODEL_ASSET_PATH =
   "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 const DEFAULT_WASM_BASE_PATH =
-  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm";
+  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm";
 
 /** Converts a MediaPipe Face Landmarker result into a small numeric feature vector. */
 export class FaceTracker {
