@@ -2,7 +2,6 @@ import { euclideanDistance } from "./CalibrationManager";
 import type {
   GestureClassDistances,
   GestureClassScores,
-  GestureLabel,
   GesturePrediction,
   GestureType,
 } from "./types";

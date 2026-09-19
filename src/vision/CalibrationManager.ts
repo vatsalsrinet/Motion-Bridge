@@ -114,6 +114,11 @@ export class CalibrationManager {
     this.neutralScale = [];
   }
 
+  resetGesture(type: GestureType): void {
+    if (type === "NEXT") this.nextSamples = [];
+    else this.selectSamples = [];
+  }
+
   private addSample(target: number[][], features: number[], limit: number): void {
     this.validateVector(features);
     if (target.length >= limit) return;

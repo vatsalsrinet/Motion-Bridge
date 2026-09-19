@@ -1,11 +1,14 @@
 import { CalibrationManager } from "./CalibrationManager";
+import { euclideanDistance } from "./CalibrationManager";
 import { CameraService } from "./CameraService";
 import { FaceTracker } from "./FaceTracker";
 import { GestureClassifier, type GestureClassifierOptions } from "./GestureClassifier";
 import { GestureEventEmitter } from "./GestureEventEmitter";
 import {
   MotionBridgeError,
+  type CalibrationState,
   type CalibrationProgress,
+  type GestureCapturePhase,
   type GestureCommand,
   type GesturePrediction,
   type GestureType,
@@ -22,6 +25,7 @@ export type MotionBridgeController = {
   beginNeutralCalibration(): void;
   beginGestureCalibration(type: GestureType): void;
   getCalibrationProgress(): CalibrationProgress;
+  getCalibrationState(): CalibrationState;
   getLatestPrediction(): GesturePrediction;
   isReady(): boolean;
   stop(): void;
@@ -55,6 +59,7 @@ export async function startMotionBridge(
 
   let latestPrediction: GesturePrediction = { label: "UNKNOWN", confidence: 0 };
   let calibrationMode: "NEUTRAL" | GestureType | undefined;
+  let capturePhase: GestureCapturePhase = "IDLE";
   let classifierConfigured = false;
   let animationHandle: number | undefined;
   let stopped = false;
@@ -82,14 +87,35 @@ export async function startMotionBridge(
       classifier.resetTriggerState();
       classifierConfigured = false;
       calibrationMode = "NEUTRAL";
+      capturePhase = "COLLECTING";
     },
     beginGestureCalibration: (type) => {
       if (!calibration.calculateNeutralVector().length) {
         throw new MotionBridgeError("INVALID_FEATURES", "Capture neutral samples before teaching a gesture.");
       }
+      calibration.resetGesture(type);
+      classifier.resetTriggerState();
+      classifierConfigured = false;
       calibrationMode = type;
+      capturePhase = "COLLECTING";
     },
     getCalibrationProgress: () => calibration.getProgress(),
+    getCalibrationState: () => {
+      const progress = calibration.getProgress();
+      const ready = calibration.isCalibrationComplete();
+      const enoughGestures = progress.next >= progress.gestureRequired && progress.select >= progress.gestureRequired;
+      return {
+        mode: calibrationMode ?? "IDLE",
+        phase: capturePhase,
+        progress,
+        nextSeparability: calibration.getSeparability("NEXT"),
+        selectSeparability: calibration.getSeparability("SELECT"),
+        ready,
+        issue: !ready && enoughGestures
+          ? "These gestures are difficult to distinguish. Please recalibrate SELECT."
+          : undefined,
+      };
+    },
     getLatestPrediction: () => ({ ...latestPrediction }),
     isReady: () => calibration.isCalibrationComplete(),
     stop: () => {
@@ -106,15 +132,27 @@ export async function startMotionBridge(
     try {
       const features = tracker.processFrame(camera.getCurrentFrame());
       if (calibrationMode) {
-        if (calibrationMode === "NEUTRAL") calibration.captureNeutral(features.vector);
-        else calibration.captureGesture(calibrationMode, features.vector);
+        if (calibrationMode === "NEUTRAL") {
+          calibration.captureNeutral(features.vector);
+        } else {
+          const normalized = calibration.normalizeFeatures(features.vector);
+          const movementMagnitude = euclideanDistance(normalized, normalized.map(() => 0));
+          if (capturePhase === "COLLECTING" && movementMagnitude >= 2.5) {
+            calibration.captureGesture(calibrationMode, features.vector);
+            capturePhase = "WAITING_FOR_NEUTRAL";
+          } else if (capturePhase === "WAITING_FOR_NEUTRAL" && movementMagnitude <= 1.1) {
+            capturePhase = "COLLECTING";
+          }
+        }
         const progress = calibration.getProgress();
         if (
           (calibrationMode === "NEUTRAL" && progress.neutral >= progress.neutralRequired) ||
           (calibrationMode !== "NEUTRAL" &&
+            capturePhase === "COLLECTING" &&
             progress[calibrationMode.toLowerCase() as "next" | "select"] >= progress.gestureRequired)
         ) {
           calibrationMode = undefined;
+          capturePhase = "IDLE";
         }
       } else if (calibration.isCalibrationComplete()) {
         if (!classifierConfigured) {
