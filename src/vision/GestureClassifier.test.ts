@@ -37,4 +37,15 @@ describe("GestureClassifier", () => {
     classifier.setPrototypes({ neutral: [0, 0], next: [1, 0], select: [0, 1] });
     expect(classifier.classify([10, 10]).label).toBe("UNKNOWN");
   });
+
+  it("exposes relative class scores and rejects a close tie", () => {
+    const classifier = new GestureClassifier({ confidenceDistanceScale: 6 });
+    classifier.setPrototypes({ neutral: [0, 0], next: [4, 0], select: [0, 4] });
+    const next = classifier.classify([4, 0]);
+    expect(next.label).toBe("NEXT");
+    expect(next.confidence).toBeGreaterThan(0.8);
+    expect(next.classScores?.NEXT).toBeGreaterThan(next.classScores?.SELECT ?? 0);
+    expect(next.classScores?.NEXT).toBeGreaterThan(next.classScores?.NEUTRAL ?? 0);
+    expect(classifier.classify([2, 2]).label).toBe("UNKNOWN");
+  });
 });

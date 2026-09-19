@@ -105,7 +105,7 @@ export async function startMotionBridge(
     getCalibrationProgress: () => calibration.getProgress(),
     getCalibrationState: () => {
       const progress = calibration.getProgress();
-      const ready = calibration.isCalibrationComplete();
+      const ready = calibrationMode === undefined && calibration.isCalibrationComplete();
       const enoughGestures = progress.next >= progress.gestureRequired && progress.select >= progress.gestureRequired;
       return {
         mode: calibrationMode ?? "IDLE",
@@ -121,7 +121,7 @@ export async function startMotionBridge(
     },
     getRuntimeStatus: () => ({ cameraActive: camera.isCameraActive(), faceDetected }),
     getLatestPrediction: () => ({ ...latestPrediction }),
-    isReady: () => calibration.isCalibrationComplete(),
+    isReady: () => calibrationMode === undefined && calibration.isCalibrationComplete(),
     stop: () => {
       if (stopped) return;
       stopped = true;

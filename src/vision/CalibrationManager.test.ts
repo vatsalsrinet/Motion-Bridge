@@ -35,4 +35,16 @@ describe("CalibrationManager", () => {
   it("returns infinity for vectors with incompatible dimensions", () => {
     expect(euclideanDistance([1], [1, 2])).toBe(Infinity);
   });
+
+  it("reports low separability for overlapping gestures", () => {
+    const calibration = new CalibrationManager({ neutralRequired: 2, gestureRequired: 2 });
+    calibration.captureNeutral([0, 0]);
+    calibration.captureNeutral([0, 0]);
+    calibration.captureGesture("NEXT", [1, 0]);
+    calibration.captureGesture("NEXT", [1, 0]);
+    calibration.captureGesture("SELECT", [1.01, 0]);
+    calibration.captureGesture("SELECT", [1.01, 0]);
+    expect(calibration.getSeparability("NEXT")).toBeLessThan(10);
+    expect(calibration.isCalibrationComplete()).toBe(false);
+  });
 });
