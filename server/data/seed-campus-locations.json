@@ -1,32 +1,12 @@
 [
-  {
-    "id": "newman",
-    "name": "Newman Library",
-    "category": "study",
-    "openTime": "08:00",
-    "closeTime": "23:00",
-    "accessibility": {
-      "accessibleEntrance": true,
-      "automaticDoor": true,
-      "elevatorAvailable": true,
-      "accessibleRoute": true,
-      "notes": "Main entrance"
-    },
-    "activeImpacts": []
-  },
-  {
-    "id": "torgersen",
-    "name": "Torgersen Hall",
-    "category": "study",
-    "openTime": "08:00",
-    "closeTime": "22:00",
-    "accessibility": {
-      "accessibleEntrance": true,
-      "automaticDoor": true,
-      "elevatorAvailable": true,
-      "accessibleRoute": true,
-      "notes": "Front entrance"
-    },
-    "activeImpacts": []
-  }
+  { "id": "newman", "name": "Newman Library", "category": "study", "latitude": 37.2296, "longitude": -80.4231, "openTime": "08:00", "closeTime": "23:00", "accessibility": { "accessibleEntrance": true, "automaticDoor": true, "elevatorAvailable": true, "accessibleRoute": true, "notes": "Main entrance" }, "activeImpacts": [] },
+  { "id": "torgersen", "name": "Torgersen Hall", "category": "study", "latitude": 37.2299, "longitude": -80.4238, "openTime": "08:00", "closeTime": "22:00", "accessibility": { "accessibleEntrance": true, "automaticDoor": true, "elevatorAvailable": true, "accessibleRoute": true, "notes": "Front entrance" }, "activeImpacts": [] },
+  { "id": "goodwin", "name": "Goodwin Hall", "category": "study", "latitude": 37.2282, "longitude": -80.4247, "openTime": "07:00", "closeTime": "22:00", "accessibility": { "accessibleEntrance": true, "automaticDoor": true, "elevatorAvailable": true, "accessibleRoute": true, "notes": "North accessible entrance" }, "activeImpacts": [] },
+  { "id": "squires", "name": "Squires Student Center", "category": "student-life", "latitude": 37.2291, "longitude": -80.4189, "openTime": "07:00", "closeTime": "23:00", "accessibility": { "accessibleEntrance": true, "automaticDoor": true, "elevatorAvailable": true, "accessibleRoute": true, "notes": "College Avenue entrance" }, "activeImpacts": [] },
+  { "id": "graduate-life", "name": "Graduate Life Center", "category": "study", "latitude": 37.2248, "longitude": -80.4185, "openTime": "07:00", "closeTime": "23:00", "accessibility": { "accessibleEntrance": true, "automaticDoor": true, "elevatorAvailable": true, "accessibleRoute": true, "notes": "Accessible entrance on Otey Street" }, "activeImpacts": [] },
+  { "id": "pamplin", "name": "Pamplin Hall", "category": "study", "latitude": 37.2271, "longitude": -80.4213, "openTime": "07:30", "closeTime": "21:00", "accessibility": { "accessibleEntrance": true, "automaticDoor": false, "elevatorAvailable": true, "accessibleRoute": true, "notes": "Use east entrance" }, "activeImpacts": [] },
+  { "id": "moss", "name": "Moss Arts Center", "category": "arts", "latitude": 37.2289, "longitude": -80.421, "openTime": "10:00", "closeTime": "22:00", "accessibility": { "accessibleEntrance": true, "automaticDoor": true, "elevatorAvailable": true, "accessibleRoute": true, "notes": "Accessible drop-off at Turner Street" }, "activeImpacts": [] },
+  { "id": "owens", "name": "Owens Food Court", "category": "dining", "latitude": 37.2257, "longitude": -80.4214, "openTime": "07:00", "closeTime": "20:00", "accessibility": { "accessibleEntrance": true, "automaticDoor": true, "elevatorAvailable": false, "accessibleRoute": true, "notes": "Ground-level entrance" }, "activeImpacts": [] },
+  { "id": "war-memorial", "name": "War Memorial Hall", "category": "recreation", "latitude": 37.2264, "longitude": -80.4194, "openTime": "06:00", "closeTime": "22:00", "accessibility": { "accessibleEntrance": true, "automaticDoor": true, "elevatorAvailable": true, "accessibleRoute": true, "notes": "Accessible entrance on Drillfield Drive" }, "activeImpacts": [] },
+  { "id": "burruss", "name": "Burruss Hall", "category": "study", "latitude": 37.229, "longitude": -80.4221, "openTime": "08:00", "closeTime": "17:00", "accessibility": { "accessibleEntrance": true, "automaticDoor": false, "elevatorAvailable": true, "accessibleRoute": true, "notes": "Accessible entrance at rear of building" }, "activeImpacts": [{ "id": "burruss-door-work", "buildingId": "burruss", "type": "construction", "description": "Accessible rear entrance route has temporary construction.", "startTime": "2026-09-01T00:00:00Z", "endTime": "2026-12-31T23:59:59Z" }] }
 ]

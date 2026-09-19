@@ -7,14 +7,20 @@ export interface AccessibilityInfo {
 }
 
 export interface CampusImpact {
+  id?: string;
+  buildingId?: string;
   type: string;
   description: string;
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface CampusLocation {
   id: string;
   name: string;
   category: string;
+  latitude?: number;
+  longitude?: number;
   openTime?: string;
   closeTime?: string;
   accessibility: AccessibilityInfo;
