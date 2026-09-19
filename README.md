@@ -15,6 +15,7 @@ const controller = await startMotionBridge(videoElement, (event) => {
 controller.beginNeutralCalibration();
 // After the neutral meter completes:
 controller.beginGestureCalibration("NEXT");
+// After the NEXT meter completes:
 controller.beginGestureCalibration("SELECT");
 controller.getCalibrationProgress(); // { neutral, next, select, ... }
 controller.isReady();
