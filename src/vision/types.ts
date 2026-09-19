@@ -59,6 +59,11 @@ export type CalibrationState = {
   issue?: string;
 };
 
+export type MotionBridgeRuntimeStatus = {
+  cameraActive: boolean;
+  faceDetected: boolean;
+};
+
 export type MotionBridgeErrorCode =
   | "CAMERA_UNAVAILABLE"
   | "CAMERA_PERMISSION_DENIED"

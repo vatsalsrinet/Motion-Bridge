@@ -12,6 +12,7 @@ import {
   type GestureCommand,
   type GesturePrediction,
   type GestureType,
+  type MotionBridgeRuntimeStatus,
 } from "./types";
 
 export * from "./types";
@@ -26,6 +27,7 @@ export type MotionBridgeController = {
   beginGestureCalibration(type: GestureType): void;
   getCalibrationProgress(): CalibrationProgress;
   getCalibrationState(): CalibrationState;
+  getRuntimeStatus(): MotionBridgeRuntimeStatus;
   getLatestPrediction(): GesturePrediction;
   isReady(): boolean;
   stop(): void;
@@ -60,6 +62,7 @@ export async function startMotionBridge(
   let latestPrediction: GesturePrediction = { label: "UNKNOWN", confidence: 0 };
   let calibrationMode: "NEUTRAL" | GestureType | undefined;
   let capturePhase: GestureCapturePhase = "IDLE";
+  let faceDetected = false;
   let classifierConfigured = false;
   let animationHandle: number | undefined;
   let stopped = false;
@@ -116,6 +119,7 @@ export async function startMotionBridge(
           : undefined,
       };
     },
+    getRuntimeStatus: () => ({ cameraActive: camera.isCameraActive(), faceDetected }),
     getLatestPrediction: () => ({ ...latestPrediction }),
     isReady: () => calibration.isCalibrationComplete(),
     stop: () => {
@@ -131,6 +135,7 @@ export async function startMotionBridge(
     if (stopped) return;
     try {
       const features = tracker.processFrame(camera.getCurrentFrame());
+      faceDetected = true;
       if (calibrationMode) {
         if (calibrationMode === "NEUTRAL") {
           calibration.captureNeutral(features.vector);
@@ -168,6 +173,9 @@ export async function startMotionBridge(
         latestPrediction = { label: "UNKNOWN", confidence: 0 };
       }
     } catch (error) {
+      faceDetected = !(error instanceof MotionBridgeError && error.code === "NO_FACE_DETECTED")
+        ? faceDetected
+        : false;
       if (!(error instanceof MotionBridgeError && error.code === "NO_FACE_DETECTED")) {
         latestPrediction = { label: "UNKNOWN", confidence: 0 };
       }
