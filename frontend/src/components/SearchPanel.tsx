@@ -60,13 +60,13 @@ export const SearchPanel = ({ query, loading, onQueryChange, onSubmit }: SearchP
         <label className="search__label" htmlFor="campus-query">What are you looking for?</label>
         <div className="search__field">
           <input id="campus-query" className="search__input" type="text" value={query} onChange={(event) => onQueryChange(event.target.value)} placeholder="Find an accessible study space open tonight" aria-describedby="campus-query-hint voice-status" autoComplete="off" maxLength={500} disabled={loading} />
-          <button type="button" className={`button search__voice${listening ? " search__voice--listening" : ""}`} onClick={toggleVoiceSearch} disabled={loading} aria-label={listening ? "Stop voice input" : "Enter search with your voice"} aria-pressed={listening}>
+          <button id="campus-voice-toggle" type="button" className={`button search__voice${listening ? " search__voice--listening" : ""}`} onClick={toggleVoiceSearch} disabled={loading} aria-label={listening ? "Stop voice input" : "Enter search with your voice"} aria-pressed={listening}>
             <span className="search__mic" aria-hidden="true">●</span>{listening ? "Stop" : "Speak"}
           </button>
-          <button type="submit" className="button button--primary search__submit" disabled={loading || query.trim().length === 0}>{loading ? "Searching" : "Search"}</button>
+          <button id="campus-search-submit" type="submit" className="button button--primary search__submit" disabled={loading || query.trim().length === 0}>{loading ? "Searching" : "Search"}</button>
         </div>
         <p className={`search__voice-status${listening ? " search__voice-status--listening" : ""}`} id="voice-status" role="status" aria-live="polite">{voiceMessage}</p>
-        <p className="search__hint" id="campus-query-hint">Ask in your own words. Mention accessibility needs and when you need the space.</p>
+        <p className="search__hint" id="campus-query-hint">Ask in your own words. Mention accessibility needs and when you need the space. Before results: NEXT starts or stops the mic; SELECT searches what you said. With results: NEXT moves through them and SELECT opens one.</p>
       </form>
       <div className="suggestions"><span className="sr-only" id="suggestions-label">Example questions</span>{SUGGESTIONS.map((suggestion) => <button key={suggestion} type="button" className="suggestions__chip" aria-describedby="suggestions-label" disabled={loading} onClick={() => { onQueryChange(suggestion); onSubmit(suggestion); }}>{suggestion}</button>)}</div>
     </section>

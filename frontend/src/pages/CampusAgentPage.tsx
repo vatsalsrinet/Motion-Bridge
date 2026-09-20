@@ -101,7 +101,7 @@ export const CampusAgentPage = ({
               <span className="label">
                 {results.length} best {results.length === 1 ? "match" : "matches"}
               </span>
-              <span className="label">Next moves focus &#183; Select activates</span>
+              <span className="label">Next moves focus &#183; Select opens</span>
             </div>
 
             <ResultsList

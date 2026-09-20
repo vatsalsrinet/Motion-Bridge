@@ -9,8 +9,9 @@ interface ResultsListProps {
 }
 
 /**
- * Each result is a focusable list item in the same tab order as the search
- * controls, so gesture users can reach and open every result directly.
+ * Listbox with a single tab stop. Arrow keys and gestures both move
+ * aria-activedescendant rather than DOM focus, which keeps the interaction
+ * identical whether it came from the keyboard or the camera.
  */
 export const ResultsList = ({
   results,
@@ -18,10 +19,15 @@ export const ResultsList = ({
   onFocusResult,
   onSelectResult
 }: ResultsListProps) => {
+  const active = results[selectedIndex];
+
   return (
     <ul
       className="results"
+      role="listbox"
+      tabIndex={0}
       aria-label="Campus results"
+      aria-activedescendant={active ? `result-${active.id}` : undefined}
     >
       {results.map((location, index) => (
         <LocationCard

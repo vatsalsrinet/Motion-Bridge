@@ -835,13 +835,6 @@
   text-transform: uppercase;
 }
 
-.card:focus-visible {
-  outline: 5px solid var(--orange);
-  outline-offset: 3px;
-  position: relative;
-  z-index: 1;
-}
-
 .card__reason {
   margin-top: var(--space-4);
   padding-top: var(--space-3);

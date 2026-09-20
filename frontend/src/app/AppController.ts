@@ -149,11 +149,30 @@ export class AppController {
     if (!this.canAcceptGesture()) return;
 
     if (command.command === "NEXT") {
+      if (this.state.screen === "LOCATION_DETAILS") {
+        this.closeDetails();
+        return;
+      }
+      if (this.state.screen === "CAMPUS_AGENT" && this.state.results.length === 0) {
+        this.clickSearchControl("campus-voice-toggle");
+        return;
+      }
       this.moveNext();
+      return;
+    }
+
+    if (this.state.screen === "CAMPUS_AGENT" && this.state.results.length === 0) {
+      this.clickSearchControl(this.state.query.trim() ? "campus-search-submit" : "campus-voice-toggle");
       return;
     }
     this.selectCurrent();
   };
+
+  private clickSearchControl(id: "campus-voice-toggle" | "campus-search-submit"): void {
+    if (typeof document === "undefined") return;
+    const control = document.getElementById(id);
+    if (control instanceof HTMLButtonElement && !control.disabled) control.click();
+  }
 
   /**
    * Gestures drive navigation only on screens where that is meaningful.
@@ -169,13 +188,7 @@ export class AppController {
   moveNext = (): void => {
     const { screen, results, selectedIndex } = this.state;
 
-    if (screen === "READY") return;
-
-    if (screen === "CAMPUS_AGENT" || screen === "LOCATION_DETAILS") {
-      if (this.focusNextInteractive(1)) return;
-      if (screen === "LOCATION_DETAILS") return;
-    }
-    if (results.length === 0) return;
+    if (screen === "READY" || results.length === 0) return;
 
     const nextIndex = (selectedIndex + 1) % results.length;
     this.setState({
@@ -186,9 +199,6 @@ export class AppController {
 
   movePrevious = (): void => {
     const { results, selectedIndex } = this.state;
-    if (this.state.screen === "CAMPUS_AGENT" || this.state.screen === "LOCATION_DETAILS") {
-      if (this.focusNextInteractive(-1)) return;
-    }
     if (results.length === 0) return;
 
     const previousIndex = (selectedIndex - 1 + results.length) % results.length;
@@ -204,21 +214,6 @@ export class AppController {
     if (screen === "READY") {
       this.navigateTo("CAMPUS_AGENT");
       return;
-    }
-    if (screen === "CAMPUS_AGENT" || screen === "LOCATION_DETAILS") {
-      if (typeof document === "undefined") return;
-      const activeElement = document.activeElement;
-      const main = document.getElementById("main");
-      if (activeElement instanceof HTMLElement && main?.contains(activeElement) && activeElement !== main) {
-        if (activeElement instanceof HTMLButtonElement && activeElement.disabled) return;
-        if (activeElement instanceof HTMLInputElement && activeElement.disabled) return;
-        if (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement) {
-          activeElement.select();
-          return;
-        }
-        activeElement.click();
-        return;
-      }
     }
     if (screen === "LOCATION_DETAILS") {
       this.closeDetails();
@@ -246,28 +241,6 @@ export class AppController {
     this.navigateTo("LOCATION_DETAILS");
     this.setState({ status: `Opened details for ${results[index].name}` });
   };
-
-  private focusNextInteractive(direction: 1 | -1): boolean {
-    if (typeof document === "undefined") return false;
-    const main = document.getElementById("main");
-    if (!main) return false;
-
-    const focusable = Array.from(main.querySelectorAll<HTMLElement>(
-      'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]'
-    )).filter((element) => {
-      if (element.getAttribute("aria-hidden") === "true" || element.closest('[aria-hidden="true"]')) return false;
-      if (element.hidden) return false;
-      return element.getClientRects().length > 0;
-    });
-    if (focusable.length === 0) return false;
-
-    const activeIndex = focusable.indexOf(document.activeElement as HTMLElement);
-    const nextIndex = activeIndex < 0
-      ? direction > 0 ? 0 : focusable.length - 1
-      : (activeIndex + direction + focusable.length) % focusable.length;
-    focusable[nextIndex].focus();
-    return true;
-  }
 
   closeDetails = (): void => {
     if (this.state.screen !== "LOCATION_DETAILS") return;
