@@ -9,9 +9,11 @@ import { createHealthRouter } from "./routes/health";
 import { CampusAgent as CampusAgentImplementation } from "./agent/CampusAgent";
 import { DatabricksService } from "./services/DatabricksService";
 import { CampusAgent as CampusAgentContract } from "./types/agent";
+import { OpenAIClient } from "./agent/OpenAIClient";
 
 export const createApp = (
   campusAgent: CampusAgentContract = new CampusAgentImplementation(
+    config.llmApiKey ? new OpenAIClient(config.llmApiKey, config.llmApiUrl, config.llmModel) : undefined,
     new DatabricksService({
       host: config.databricksHost,
       token: config.databricksToken,

@@ -11,6 +11,8 @@ python -m pip install -r requirements.txt
 
 Copy `.env.example` to `.env` if you want to configure Databricks or backend options.
 
+Set `LLM_API_KEY` in the server `.env` to enable OpenAI-compatible constraint extraction. Optional `LLM_API_URL` and `LLM_MODEL` default to OpenAI's chat-completions endpoint and `gpt-4o-mini`. The key stays server-side and is never sent to the browser.
+
 ## Run
 
 Start the Python vision service:
@@ -32,6 +34,8 @@ npm run dev:frontend
 ```
 
 The website uses the Vite URL, the campus API defaults to `http://localhost:3000`, and the vision WebSocket defaults to `ws://127.0.0.1:8000/ws/vision`.
+
+The React frontend includes a microphone button using the browser Speech Recognition API. It also connects to the real Python gesture backend by default; use `VITE_USE_MOCKS=true` only for a mock demo.
 
 ## Vision calibration
 

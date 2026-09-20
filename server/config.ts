@@ -14,5 +14,8 @@ export const config = {
   databricksHost: process.env.DATABRICKS_HOST,
   databricksToken: process.env.DATABRICKS_TOKEN,
   databricksWarehouseId: process.env.DATABRICKS_WAREHOUSE_ID,
+  llmApiKey: process.env.LLM_API_KEY,
+  llmApiUrl: process.env.LLM_API_URL ?? "https://api.openai.com/v1/chat/completions",
+  llmModel: process.env.LLM_MODEL ?? "gpt-4o-mini",
   demoFallback: process.env.DEMO_FALLBACK === "true"
 };

@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import type { FormEvent } from "react";
 
 interface SearchPanelProps {
@@ -16,9 +17,25 @@ const SUGGESTIONS = [
 ];
 
 export const SearchPanel = ({ query, loading, onQueryChange, onSubmit }: SearchPanelProps) => {
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<{ start: () => void; stop: () => void; onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null; onerror: (() => void) | null } | null>(null);
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     onSubmit(query);
+  };
+
+  const startVoiceSearch = () => {
+    const SpeechRecognition = (window as Window & { SpeechRecognition?: new () => typeof recognitionRef.current; webkitSpeechRecognition?: new () => typeof recognitionRef.current }).SpeechRecognition
+      ?? (window as Window & { webkitSpeechRecognition?: new () => typeof recognitionRef.current }).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    const recognition = new SpeechRecognition();
+    if (!recognition) return;
+    recognitionRef.current = recognition;
+    recognition.onresult = (event) => onQueryChange(Array.from(event.results).map((result) => result[0].transcript).join(" "));
+    recognition.onend = () => setListening(false);
+    recognition.onerror = () => setListening(false);
+    setListening(true);
+    recognition.start();
   };
 
   return (
@@ -45,6 +62,9 @@ export const SearchPanel = ({ query, loading, onQueryChange, onSubmit }: SearchP
             maxLength={500}
             disabled={loading}
           />
+          <button type="button" className="button button--ghost search__voice" onClick={startVoiceSearch} disabled={loading || listening} aria-label="Search by voice">
+            {listening ? "Listening…" : "🎙 Speak"}
+          </button>
           <button
             type="submit"
             className="button button--primary search__submit"
