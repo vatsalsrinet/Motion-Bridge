@@ -148,7 +148,7 @@ export const CalibrationPage = ({
             </div>
           )}
 
-          <div className="row" style={{ marginTop: "var(--space-6)", gap: "var(--space-5)" }}>
+          <div className="row calibration__actions">
             <button
               type="button"
               className="button button--primary"

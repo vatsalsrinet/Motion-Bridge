@@ -138,7 +138,7 @@ export const App = () => {
   };
 
   return (
-    <div className="app">
+    <div className={calibrationScreen ? "app app--calibration" : "app"}>
       <a className="skip-link" href="#main">
         Skip to main content
       </a>
@@ -156,7 +156,7 @@ export const App = () => {
         {calibrationScreen && <p className="camera__note">Camera frames are sent only to the local MotionBridge vision service.</p>}
       </div>
 
-      <main className="app__main" id="main" tabIndex={-1}>
+      <main className={calibrationScreen ? "app__main app__main--calibration" : "app__main"} id="main" tabIndex={-1}>
         {renderScreen()}
       </main>
 

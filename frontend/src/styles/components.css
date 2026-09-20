@@ -169,6 +169,40 @@
   margin: var(--space-6) auto 0;
 }
 
+/* Calibration is one focused workspace, not a tall document. On laptop-sized
+   screens the live camera and the current step share the viewport, keeping all
+   controls visible without scrolling. */
+.app--calibration {
+  height: 100dvh;
+  min-height: 640px;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(460px, 1.1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.app--calibration .header {
+  grid-column: 1 / -1;
+}
+
+.app--calibration .tracker-dock {
+  align-self: center;
+  width: min(520px, calc(100% - (2 * var(--space-6))));
+  margin: 0 auto;
+}
+
+.app__main--calibration {
+  align-self: center;
+  width: 100%;
+  max-width: 720px;
+  margin: 0;
+  padding: var(--space-5) var(--space-6);
+}
+
+.app--calibration .devbar {
+  grid-column: 1 / -1;
+}
+
 /* Keep the live video mounted after calibration so gesture recognition keeps
    receiving frames on READY, search, results, and detail screens. */
 .tracker-dock--parked {
@@ -254,6 +288,11 @@
   max-width: 46ch;
 }
 
+.calibration__actions {
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
 .samples {
   margin-top: var(--space-6);
   border-top: 2px solid var(--maroon);
@@ -298,6 +337,63 @@
 .samples__dot--filled {
   background: var(--maroon);
   border-color: var(--maroon);
+}
+
+@media (max-height: 760px) and (min-width: 881px) {
+  .app__main--calibration {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-4);
+  }
+
+  .app--calibration .steps {
+    margin-bottom: var(--space-4);
+  }
+
+  .app--calibration .steps__label {
+    margin-top: var(--space-2);
+  }
+
+  .app--calibration .calibration__instruction {
+    margin-top: var(--space-3);
+    line-height: 1.45;
+  }
+
+  .app--calibration .samples {
+    margin-top: var(--space-4);
+    padding-top: var(--space-3);
+  }
+
+  .app--calibration .samples__dots {
+    margin-top: var(--space-3);
+  }
+
+  .app--calibration .capture-status,
+  .app--calibration .calibration__actions {
+    margin-top: var(--space-4);
+  }
+
+  .app--calibration .capture-status {
+    padding: var(--space-3);
+  }
+}
+
+@media (max-width: 880px) {
+  .app--calibration {
+    height: auto;
+    min-height: 100%;
+    display: flex;
+    overflow: visible;
+  }
+
+  .app--calibration .tracker-dock {
+    width: min(520px, calc(100% - (2 * var(--space-4))));
+    margin-top: var(--space-5);
+  }
+
+  .app__main--calibration {
+    max-width: 720px;
+    margin: 0 auto;
+  }
 }
 
 /* ------------------------------------------------------------------ */
