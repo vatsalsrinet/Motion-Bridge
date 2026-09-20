@@ -63,6 +63,9 @@ export const LocationCard = ({
 
       <AccessibilityBadges info={location.accessibility} />
 
+      {location.address && <p className="card__address">{location.address}</p>}
+      {location.matchReason && <p className="card__reason">{location.matchReason}</p>}
+
       {location.activeImpacts.map((impact, impactIndex) => (
         <ImpactWarning key={impact.id ?? `${impact.type}-${impactIndex}`} impact={impact} />
       ))}

@@ -46,6 +46,9 @@ export interface CampusLocation {
   longitude?: number;
   openTime?: string;
   closeTime?: string;
+  address?: string;
+  sourceUrl?: string;
+  matchReason?: string;
   accessibility: AccessibilityInfo;
   activeImpacts: CampusImpact[];
 }

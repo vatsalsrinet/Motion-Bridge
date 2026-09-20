@@ -48,6 +48,12 @@ export const LocationDetails = ({ location, position, total, onBack }: LocationD
           <p className="details__category">{location.category}</p>
 
           <dl className="facts">
+            {location.address && (
+              <div className="facts__row">
+                <dt>Address</dt>
+                <dd>{location.address}</dd>
+              </div>
+            )}
             <div className="facts__row">
               <dt>Hours</dt>
               <dd className="mono">{hours}</dd>

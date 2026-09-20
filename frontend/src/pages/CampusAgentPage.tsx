@@ -29,7 +29,7 @@ export const CampusAgentPage = ({
   const provenance = mocked
     ? "Demo mode · canned sample data, not a live campus query"
     : dataSource === "seed"
-      ? "Seed data snapshot · live Databricks connection unavailable"
+      ? "Official VT Facilities GIS snapshot · live Databricks connection unavailable"
       : null;
 
   return (
@@ -99,7 +99,7 @@ export const CampusAgentPage = ({
 
             <div className="results__head">
               <span className="label">
-                {results.length} {results.length === 1 ? "result" : "results"}
+                {results.length} best {results.length === 1 ? "match" : "matches"}
               </span>
               <span className="label">Next moves focus &#183; Select opens</span>
             </div>
