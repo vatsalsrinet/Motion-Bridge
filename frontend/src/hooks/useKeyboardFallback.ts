@@ -25,19 +25,19 @@ export const useKeyboardFallback = (): void => {
       if (isTypingTarget(event.target)) return;
 
       const state = appController.getState();
-      const onResults = state.screen === "CAMPUS_AGENT" || state.screen === "LOCATION_DETAILS";
+      const canNavigate = state.screen === "CAMPUS_AGENT" || state.screen === "LOCATION_DETAILS";
 
       switch (event.key) {
         case "ArrowDown":
         case "ArrowRight":
-          if (!onResults) return;
+          if (!canNavigate) return;
           event.preventDefault();
           appController.moveNext();
           return;
 
         case "ArrowUp":
         case "ArrowLeft":
-          if (!onResults) return;
+          if (!canNavigate) return;
           event.preventDefault();
           appController.movePrevious();
           return;
@@ -46,7 +46,7 @@ export const useKeyboardFallback = (): void => {
         case " ":
           // Let a focused button handle its own activation.
           if (event.target instanceof HTMLButtonElement) return;
-          if (!onResults) return;
+          if (!canNavigate) return;
           event.preventDefault();
           appController.selectCurrent();
           return;

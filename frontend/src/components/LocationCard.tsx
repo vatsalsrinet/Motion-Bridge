@@ -13,9 +13,8 @@ interface LocationCardProps {
 }
 
 /**
- * One result. Rendered as an option in a listbox: the list owns focus and
- * moves aria-activedescendant, which is what lets a single gesture change the
- * selection without ever moving DOM focus.
+ * One result. It can receive focus from Tab or NEXT and opens through Enter,
+ * Space, SELECT, or a pointer click.
  */
 export const LocationCard = ({
   location,
@@ -40,9 +39,9 @@ export const LocationCard = ({
     <li
       ref={ref}
       id={`result-${location.id}`}
-      role="option"
-      aria-selected={focused}
+      tabIndex={0}
       className={focused ? "card card--focused" : "card"}
+      onFocus={onFocus}
       onClick={() => {
         onFocus();
         onSelect();
