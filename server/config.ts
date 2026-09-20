@@ -15,7 +15,8 @@ export const config = {
   databricksToken: process.env.DATABRICKS_TOKEN,
   databricksWarehouseId: process.env.DATABRICKS_WAREHOUSE_ID,
   llmApiKey: process.env.LLM_API_KEY,
-  llmApiUrl: process.env.LLM_API_URL ?? "https://api.openai.com/v1/chat/completions",
-  llmModel: process.env.LLM_MODEL ?? "gpt-4o-mini",
+  llmProvider: process.env.LLM_PROVIDER ?? "gemini",
+  llmApiUrl: process.env.LLM_API_URL ?? "https://generativelanguage.googleapis.com/v1beta",
+  llmModel: process.env.LLM_MODEL ?? "gemini-2.0-flash",
   demoFallback: process.env.DEMO_FALLBACK === "true"
 };

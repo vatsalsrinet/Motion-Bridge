@@ -11,7 +11,7 @@ python -m pip install -r requirements.txt
 
 Copy `.env.example` to `.env` if you want to configure Databricks or backend options.
 
-Set `LLM_API_KEY` in the server `.env` to enable OpenAI-compatible constraint extraction. Optional `LLM_API_URL` and `LLM_MODEL` default to OpenAI's chat-completions endpoint and `gpt-4o-mini`. The key stays server-side and is never sent to the browser.
+Set `LLM_API_KEY` in the server `.env` to enable Google AI Studio Gemini constraint extraction. `LLM_PROVIDER=gemini`, the Gemini REST URL, and `gemini-2.0-flash` are the defaults. The key stays server-side and is never sent to the browser. `LLM_PROVIDER=openai` remains available for OpenAI-compatible keys.
 
 ## Run
 

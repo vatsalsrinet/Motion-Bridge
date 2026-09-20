@@ -10,10 +10,15 @@ import { CampusAgent as CampusAgentImplementation } from "./agent/CampusAgent";
 import { DatabricksService } from "./services/DatabricksService";
 import { CampusAgent as CampusAgentContract } from "./types/agent";
 import { OpenAIClient } from "./agent/OpenAIClient";
+import { GeminiClient } from "./agent/GeminiClient";
 
 export const createApp = (
   campusAgent: CampusAgentContract = new CampusAgentImplementation(
-    config.llmApiKey ? new OpenAIClient(config.llmApiKey, config.llmApiUrl, config.llmModel) : undefined,
+    config.llmApiKey
+      ? config.llmProvider === "openai"
+        ? new OpenAIClient(config.llmApiKey, config.llmApiUrl, config.llmModel)
+        : new GeminiClient(config.llmApiKey, config.llmApiUrl, config.llmModel)
+      : undefined,
     new DatabricksService({
       host: config.databricksHost,
       token: config.databricksToken,
