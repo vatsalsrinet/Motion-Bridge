@@ -4,18 +4,17 @@
   "private": true,
   "type": "commonjs",
   "scripts": {
-    "dev": "vite",
-    "dev:frontend": "vite",
+    "dev": "npm --prefix frontend run dev -- --host 127.0.0.1 --port 5173",
+    "dev:frontend": "npm --prefix frontend run dev -- --host 127.0.0.1 --port 5173",
     "dev:server": "tsx watch server/index.ts",
     "build": "npm run build:frontend && npm run build:server",
-    "build:frontend": "tsc -p tsconfig.frontend.json && vite build",
+    "build:frontend": "npm --prefix frontend run build",
     "build:server": "tsc -p tsconfig.server.json",
     "start": "node dist/server/index.js",
     "test": "vitest run --pool=threads --maxWorkers=1 --minWorkers=1",
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@mediapipe/tasks-vision": "0.10.35",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",

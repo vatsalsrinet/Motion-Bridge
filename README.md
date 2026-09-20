@@ -27,13 +27,13 @@ Start the campus API in another terminal:
 npm run dev:server
 ```
 
-Start the website in a third terminal:
+Start the React website in a third terminal:
 
 ```bash
-npm run dev:frontend
+npm run dev
 ```
 
-The website uses the Vite URL, the campus API defaults to `http://localhost:3000`, and the vision WebSocket defaults to `ws://127.0.0.1:8000/ws/vision`.
+The website runs at `http://127.0.0.1:5173`, the campus API defaults to `http://localhost:3000`, and the vision WebSocket defaults to `ws://127.0.0.1:8000/ws/vision`.
 
 The React frontend includes a microphone button using the browser Speech Recognition API. It also connects to the real Python gesture backend by default; use `VITE_USE_MOCKS=true` only for a mock demo.
 
