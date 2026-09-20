@@ -30,7 +30,7 @@ export const useMotionBridge = (videoElement: HTMLVideoElement | null) => {
         }
 
         controller.onCalibrationProgress?.((progress) => {
-          appController.updateSampleProgress(progress.captured, progress.required);
+          appController.updateSampleProgress(progress.captured, progress.required, progress.phase, progress.issue);
           if (progress.complete) {
             appController.completeCalibrationStage(progress.stage);
           }

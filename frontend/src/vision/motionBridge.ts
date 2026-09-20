@@ -14,7 +14,7 @@ const visionUrl = (): string => {
   return `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.hostname}:8000/ws/vision`;
 };
 
-type BackendMessage = { type: string; gesture?: string; current?: number; required?: number; neutral_current?: number; neutral_required?: number; next_current?: number; select_current?: number; gesture_required?: number; next_quality?: number; select_quality?: number; ready?: boolean; issue?: string | null; command?: GestureCommand["command"]; confidence?: number; };
+type BackendMessage = { type: string; gesture?: string; phase?: CalibrationProgress["phase"]; current?: number; required?: number; neutral_current?: number; neutral_required?: number; next_current?: number; select_current?: number; gesture_required?: number; next_quality?: number; select_quality?: number; ready?: boolean; issue?: string | null; command?: GestureCommand["command"]; confidence?: number; };
 
 const startRealMotionBridge: StartMotionBridge = (videoElement, onCommand) => new Promise((resolve, reject) => {
   const socket = new WebSocket(visionUrl());
@@ -24,13 +24,14 @@ const startRealMotionBridge: StartMotionBridge = (videoElement, onCommand) => ne
   let scores: CalibrationScores = {};
   let timer: number | undefined;
   let ready = false;
+  let activeStage: CalibrationProgress["stage"] = "NEUTRAL";
   let settled = false;
   const timeout = window.setTimeout(() => { if (!settled) { socket.close(); reject(new Error("Vision backend is unavailable. Start Python vision with `python -m vision_backend.main`.")); } }, 6000);
   const notify = () => progressListeners.forEach((listener) => listener(progress));
   const send = (message: object) => { if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message)); };
   const controller: MotionBridgeController = {
-    beginNeutralCalibration: () => send({ type: "start_calibration", gesture: "NEUTRAL" }),
-    beginGestureCalibration: (gesture: GestureType) => send({ type: "start_calibration", gesture }),
+    beginNeutralCalibration: () => { activeStage = "NEUTRAL"; send({ type: "start_calibration", gesture: "NEUTRAL" }); },
+    beginGestureCalibration: (gesture: GestureType) => { activeStage = gesture; send({ type: "start_calibration", gesture }); },
     isReady: () => ready,
     stop: () => { if (timer !== undefined) window.clearInterval(timer); socket.close(); },
     onCalibrationProgress: (listener) => { progressListeners.add(listener); listener(progress); },
@@ -53,10 +54,11 @@ const startRealMotionBridge: StartMotionBridge = (videoElement, onCommand) => ne
   socket.onmessage = (event) => {
     const message = JSON.parse(event.data as string) as BackendMessage;
     if (message.type === "calibration_progress") {
-      const stage = message.gesture === "NEXT" || message.gesture === "SELECT" ? message.gesture : "NEUTRAL";
+      const stage = message.gesture === "NEXT" || message.gesture === "SELECT" || message.gesture === "NEUTRAL" ? message.gesture : activeStage;
+      activeStage = stage;
       const captured = stage === "NEUTRAL" ? message.neutral_current ?? 0 : stage === "NEXT" ? message.next_current ?? 0 : message.select_current ?? 0;
       const required = stage === "NEUTRAL" ? message.neutral_required ?? 80 : message.gesture_required ?? 5;
-      progress = { stage, captured, required, complete: captured >= required };
+      progress = { stage, captured, required, complete: captured >= required, phase: message.phase, issue: message.issue ?? undefined };
       ready = Boolean(message.ready); scores = { nextScore: (message.next_quality ?? 0) / 100, selectScore: (message.select_quality ?? 0) / 100 }; notify();
     } else if (message.type === "event" && message.command) onCommand({ command: message.command, confidence: Math.max(0, Math.min(1, (message.confidence ?? 0) / 100)) });
   };

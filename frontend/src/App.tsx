@@ -39,7 +39,7 @@ export const App = () => {
     setVideoElement(element);
   }, []);
 
-  const camera = <CameraPanel onVideoReady={onVideoReady} onSkip={() => appController.navigateTo("READY")} />;
+  const calibrationScreen = state.screen === "NEUTRAL_CALIBRATION" || state.screen === "NEXT_CALIBRATION" || state.screen === "SELECT_CALIBRATION";
 
   const renderScreen = () => {
     switch (state.screen) {
@@ -52,13 +52,13 @@ export const App = () => {
             stage="NEUTRAL"
             captured={state.calibration.captured}
             required={state.calibration.required}
+            phase={state.calibration.phase}
             error={state.calibration.error}
             complete={state.calibration.neutralDone}
             ready={motion.started}
             onStart={motion.beginNeutralCalibration}
             onContinue={() => appController.navigateTo("NEXT_CALIBRATION")}
             onSkip={() => appController.navigateTo("NEXT_CALIBRATION")}
-            camera={camera}
           />
         );
 
@@ -68,13 +68,13 @@ export const App = () => {
             stage="NEXT"
             captured={state.calibration.captured}
             required={state.calibration.required}
+            phase={state.calibration.phase}
             error={state.calibration.error}
             complete={state.calibration.nextDone}
             ready={motion.started}
             onStart={() => motion.beginGestureCalibration("NEXT")}
             onContinue={() => appController.navigateTo("SELECT_CALIBRATION")}
             onSkip={() => appController.navigateTo("SELECT_CALIBRATION")}
-            camera={camera}
           />
         );
 
@@ -84,6 +84,7 @@ export const App = () => {
             stage="SELECT"
             captured={state.calibration.captured}
             required={state.calibration.required}
+            phase={state.calibration.phase}
             error={state.calibration.error}
             complete={state.calibration.selectDone}
             ready={motion.started}
@@ -93,7 +94,6 @@ export const App = () => {
               appController.navigateTo("READY");
             }}
             onSkip={() => appController.navigateTo("READY")}
-            camera={camera}
           />
         );
 
@@ -150,6 +150,11 @@ export const App = () => {
         </p>
         <p className="header__step">{STEP_LABEL[state.screen]}</p>
       </header>
+
+      <div className={calibrationScreen ? "tracker-dock" : "tracker-dock tracker-dock--parked"} aria-hidden={!calibrationScreen}>
+        <CameraPanel onVideoReady={onVideoReady} onSkip={() => appController.navigateTo("READY")} />
+        {calibrationScreen && <p className="camera__note">Camera frames are sent only to the local MotionBridge vision service.</p>}
+      </div>
 
       <main className="app__main" id="main" tabIndex={-1}>
         {renderScreen()}

@@ -16,6 +16,7 @@ export interface CalibrationState {
   required: number;
   scores: CalibrationScores;
   error: string | null;
+  phase: "IDLE" | "COLLECTING" | "WINDOW" | "WAITING_FOR_NEUTRAL";
 }
 
 export interface AppState {
@@ -42,7 +43,8 @@ const initialCalibration = (): CalibrationState => ({
   captured: 0,
   required: 5,
   scores: {},
-  error: null
+  error: null,
+  phase: "IDLE"
 });
 
 const initialState = (): AppState => ({
@@ -231,9 +233,9 @@ export class AppController {
   /* Calibration                                                       */
   /* ---------------------------------------------------------------- */
 
-  updateSampleProgress = (captured: number, required: number): void => {
+  updateSampleProgress = (captured: number, required: number, phase: CalibrationState["phase"] = "COLLECTING", issue?: string): void => {
     this.setState({
-      calibration: { ...this.state.calibration, captured, required, error: null },
+      calibration: { ...this.state.calibration, captured, required, phase, error: issue ?? null },
       status: `Captured ${captured} of ${required} samples`
     });
   };

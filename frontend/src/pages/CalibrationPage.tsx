@@ -7,6 +7,7 @@ interface CalibrationPageProps {
   stage: CalibrationStage;
   captured: number;
   required: number;
+  phase: "IDLE" | "COLLECTING" | "WINDOW" | "WAITING_FOR_NEUTRAL";
   error: string | null;
   /** True once this stage has captured everything it needs. */
   complete: boolean;
@@ -15,7 +16,6 @@ interface CalibrationPageProps {
   onStart: () => void;
   onContinue: () => void;
   onSkip: () => void;
-  camera: ReactNode;
 }
 
 const STAGES: CalibrationStage[] = ["NEUTRAL", "NEXT", "SELECT"];
@@ -62,16 +62,23 @@ export const CalibrationPage = ({
   stage,
   captured,
   required,
+  phase,
   error,
   complete,
   ready,
   onStart,
   onContinue,
   onSkip,
-  camera
 }: CalibrationPageProps) => {
   const copy = COPY[stage];
   const currentIndex = STAGES.indexOf(stage);
+  const captureMessage = stage === "NEUTRAL"
+    ? complete ? "Neutral baseline captured." : "Stay relaxed and hold still while neutral frames are collected."
+    : complete ? `${stage} calibration complete.`
+      : phase === "WAITING_FOR_NEUTRAL" ? `Movement captured. Go back to neutral, then perform ${stage} again.`
+        : phase === "WINDOW" ? `${stage} detected. Hold the movement briefly.`
+          : captured > 0 ? `Neutral detected. Perform your next ${stage} action.`
+            : `Perform your ${stage} action, then return to neutral.`;
 
   // Begin capturing once this stage is on screen *and* the tracker is running.
   // The camera takes a moment to come up, so starting on mount alone would
@@ -113,13 +120,6 @@ export const CalibrationPage = ({
 
       <div className="calibration">
         <div>
-          {camera}
-          <p className="camera__note">
-            Nothing leaves your device. Frames are processed in the browser.
-          </p>
-        </div>
-
-        <div>
           <p className="eyebrow">{copy.step}</p>
           <h2 className="display" style={{ fontSize: "var(--text-xl)" }}>
             {copy.title}
@@ -127,6 +127,14 @@ export const CalibrationPage = ({
           <p className="calibration__instruction">{copy.instruction}</p>
 
           <CalibrationPanel captured={captured} required={required} unit={copy.unit} />
+
+          <div className={`capture-status capture-status--${phase.toLowerCase()}`} role="status" aria-live="polite">
+            <span className="capture-status__pulse" aria-hidden="true" />
+            <div>
+              <p className="capture-status__label">Live capture status</p>
+              <p className="capture-status__message">{captureMessage}</p>
+            </div>
+          </div>
 
           {error && (
             <div className="notice notice--error" role="alert" style={{ marginTop: "var(--space-5)" }}>

@@ -19,6 +19,9 @@ export interface CalibrationProgress {
   required: number;
   /** True on the update that completes the stage. */
   complete: boolean;
+  /** Capture lifecycle reported by the Python calibration state machine. */
+  phase?: "IDLE" | "COLLECTING" | "WINDOW" | "WAITING_FOR_NEUTRAL";
+  issue?: string;
 }
 
 export interface CalibrationScores {
