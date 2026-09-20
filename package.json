@@ -10,6 +10,7 @@
     "build": "npm run build:frontend && npm run build:server",
     "build:frontend": "npm --prefix frontend run build",
     "build:server": "tsc -p tsconfig.server.json",
+    "sync:campus": "node scripts/sync-vt-campus-data.mjs",
     "start": "node dist/server/index.js",
     "test": "vitest run --pool=threads --maxWorkers=1 --minWorkers=1",
     "test:watch": "vitest"
