@@ -17,6 +17,6 @@ export const config = {
   llmApiKey: process.env.LLM_API_KEY,
   llmProvider: process.env.LLM_PROVIDER ?? "gemini",
   llmApiUrl: process.env.LLM_API_URL ?? "https://generativelanguage.googleapis.com/v1beta",
-  llmModel: process.env.LLM_MODEL ?? "gemini-2.0-flash",
+  llmModel: process.env.LLM_MODEL ?? "gemini-3.5-flash-lite",
   demoFallback: process.env.DEMO_FALLBACK === "true"
 };

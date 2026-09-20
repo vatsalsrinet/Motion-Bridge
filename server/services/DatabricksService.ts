@@ -57,13 +57,28 @@ export class DatabricksService {
   }
 
   async findLocations(constraints: SearchConstraints): Promise<CampusLocation[]> {
-    if (!this.isConfigured) return this.filterSeedLocations(constraints);
+    const officialLocations = this.filterSeedLocations(constraints);
+    if (!this.isConfigured) return officialLocations;
 
     const params: Record<string, string | number | boolean> = {};
     if (constraints.category) params.category = constraints.category;
     if (constraints.openAfter) params.openAfter = constraints.openAfter;
-    const rows = await this.executeQuery(buildLocationQuery(constraints), params);
-    return rows.map((row) => this.mapRow(row));
+    let rows: DatabricksRow[];
+    try {
+      rows = await this.executeQuery(buildLocationQuery(constraints), params);
+    } catch {
+      return officialLocations;
+    }
+    const liveLocations = rows.map((row) => this.mapRow(row));
+
+    // Databricks may contain a smaller curated set. Merge it into the complete
+    // official GIS snapshot instead of allowing it to hide every other campus
+    // building. A live record wins when the same building is present in both.
+    const merged = new Map(officialLocations.map((location) => [location.buildingId ?? location.id, location]));
+    for (const location of liveLocations) {
+      merged.set(location.buildingId ?? location.id, location);
+    }
+    return [...merged.values()];
   }
 
   async getAccessibility(buildingId: string): Promise<AccessibilityInfo> {
@@ -98,7 +113,7 @@ export class DatabricksService {
   private filterSeedLocations(constraints: SearchConstraints): CampusLocation[] {
     return (seedLocations as CampusLocation[]).filter((location) => {
       if (constraints.category && location.category !== constraints.category) return false;
-      if (constraints.openAfter && (location.closeTime ?? "00:00") < constraints.openAfter) return false;
+      if (constraints.openAfter && location.closeTime && location.closeTime < constraints.openAfter) return false;
       if (constraints.needsAccessibleEntrance && !location.accessibility.accessibleEntrance) return false;
       if (constraints.needsAutomaticDoor && !location.accessibility.automaticDoor) return false;
       if (constraints.needsElevator && !location.accessibility.elevatorAvailable) return false;
@@ -114,6 +129,7 @@ export class DatabricksService {
       category: String(row.category),
       latitude: Number(row.latitude),
       longitude: Number(row.longitude),
+      buildingId: row.buildingId ? String(row.buildingId) : undefined,
       openTime: String(row.openTime),
       closeTime: String(row.closeTime),
       accessibility: {

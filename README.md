@@ -11,7 +11,7 @@ python -m pip install -r requirements.txt
 
 Copy `.env.example` to `.env` if you want to configure Databricks or backend options.
 
-Set `LLM_API_KEY` in the server `.env` to enable Google AI Studio Gemini constraint extraction. `LLM_PROVIDER=gemini`, the Gemini REST URL, and `gemini-2.0-flash` are the defaults. The key stays server-side and is never sent to the browser. `LLM_PROVIDER=openai` remains available for OpenAI-compatible keys.
+Set `LLM_API_KEY` in the server `.env` to enable Google AI Studio Gemini query understanding and result ranking. `LLM_PROVIDER=gemini`, the Gemini REST URL, and `gemini-3.5-flash-lite` are the defaults. The key stays server-side and is never sent to the browser. `LLM_PROVIDER=openai` remains available for OpenAI-compatible keys.
 
 ## Run
 
@@ -48,7 +48,15 @@ curl http://localhost:3000/api/health
 curl -X POST http://localhost:3000/api/agent -H "Content-Type: application/json" -d "{\"query\":\"Find an accessible study space open tonight\"}"
 ```
 
-Without Databricks configuration the backend uses its bundled campus snapshot. Set `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, and `DATABRICKS_WAREHOUSE_ID` to use the SQL Statement Execution API.
+The bundled catalog is generated from Virginia Tech Facilities' official building, accessible-entrance, and elevator GIS layers. It currently contains 505 named Blacksburg campus locations. Databricks records are merged into this catalog when configured, so a smaller live table never hides the rest of campus.
+
+Refresh the official snapshot with:
+
+```bash
+npm run sync:campus
+```
+
+Set `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, and `DATABRICKS_WAREHOUSE_ID` to enrich the catalog through the SQL Statement Execution API.
 
 ## Verify
 

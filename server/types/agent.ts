@@ -15,12 +15,16 @@ export interface CampusImpact {
 
 export interface CampusLocation {
   id: string;
+  buildingId?: string;
   name: string;
   category: string;
   latitude?: number;
   longitude?: number;
   openTime?: string;
   closeTime?: string;
+  address?: string;
+  sourceUrl?: string;
+  matchReason?: string;
   accessibility: AccessibilityInfo;
   activeImpacts: CampusImpact[];
 }

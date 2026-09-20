@@ -38,4 +38,21 @@ describe("CampusAgent", () => {
     expect(response.results).toEqual([]);
     expect(response.message).toMatch(/could not find/i);
   });
+
+  it("uses LLM-ranked catalog IDs and exposes a factual match reason", async () => {
+    const responses = [
+      JSON.stringify({}),
+      JSON.stringify({
+        message: "Newman Library is the strongest match.",
+        matches: [{ id: "newman-library-0177", reason: "Library study space with mapped accessibility features." }]
+      })
+    ];
+    const rankedAgent = new CampusAgent({ complete: async () => responses.shift() ?? "{}" });
+
+    const response = await rankedAgent.processQuery("Find a library");
+
+    expect(response.results).toHaveLength(1);
+    expect(response.results[0].name).toBe("Newman Library");
+    expect(response.results[0].matchReason).toMatch(/study space/i);
+  });
 });
