@@ -50,6 +50,8 @@ curl -X POST http://localhost:3000/api/agent -H "Content-Type: application/json"
 
 The bundled catalog is generated from Virginia Tech Facilities' official building, accessible-entrance, and elevator GIS layers. It currently contains 505 named Blacksburg campus locations. Databricks records are merged into this catalog when configured, so a smaller live table never hides the rest of campus.
 
+Every catalog entry includes separate weekday and weekend planning hours. A schedule is labeled `published` only when a location publishes stable building hours; otherwise it is clearly labeled `typical` and the interface tells users to verify before visiting. Holiday, break, event, and card-access schedules can differ.
+
 Refresh the official snapshot with:
 
 ```bash

@@ -26,10 +26,7 @@ export const LocationDetails = ({ location, position, total, onBack }: LocationD
     headingRef.current?.focus();
   }, [location.id]);
 
-  const hours =
-    location.openTime && location.closeTime
-      ? `${location.openTime} – ${location.closeTime}`
-      : "Not published";
+  const hours = location.operatingHours;
 
   return (
     <article>
@@ -55,8 +52,12 @@ export const LocationDetails = ({ location, position, total, onBack }: LocationD
               </div>
             )}
             <div className="facts__row">
-              <dt>Hours</dt>
-              <dd className="mono">{hours}</dd>
+              <dt>Weekdays</dt>
+              <dd className="mono">{hours?.weekdays ?? "Check with building"}</dd>
+            </div>
+            <div className="facts__row">
+              <dt>Weekends</dt>
+              <dd className="mono">{hours?.weekends ?? "Check with building"}</dd>
             </div>
             <div className="facts__row">
               <dt>Category</dt>
@@ -71,6 +72,12 @@ export const LocationDetails = ({ location, position, total, onBack }: LocationD
               </div>
             )}
           </dl>
+          {hours && (
+            <p className="hours-note">
+              <strong>{hours.status === "published" ? "Published schedule." : "Typical schedule."}</strong>{" "}
+              {hours.note}
+            </p>
+          )}
         </div>
 
         <div>

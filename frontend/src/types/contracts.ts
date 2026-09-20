@@ -36,6 +36,14 @@ export interface CampusImpact {
   description: string;
 }
 
+export interface OperatingHours {
+  weekdays: string;
+  weekends: string;
+  status: "published" | "typical";
+  note: string;
+  sourceUrl?: string;
+}
+
 export interface CampusLocation {
   id: string;
   name: string;
@@ -49,6 +57,7 @@ export interface CampusLocation {
   address?: string;
   sourceUrl?: string;
   matchReason?: string;
+  operatingHours?: OperatingHours;
   accessibility: AccessibilityInfo;
   activeImpacts: CampusImpact[];
 }

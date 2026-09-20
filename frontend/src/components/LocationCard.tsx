@@ -64,6 +64,17 @@ export const LocationCard = ({
       <AccessibilityBadges info={location.accessibility} />
 
       {location.address && <p className="card__address">{location.address}</p>}
+      {location.operatingHours && (
+        <div className="card__hours-block">
+          <dl className="card__hours">
+            <div><dt>Weekdays</dt><dd>{location.operatingHours.weekdays}</dd></div>
+            <div><dt>Weekends</dt><dd>{location.operatingHours.weekends}</dd></div>
+          </dl>
+          <p className={`hours-status hours-status--${location.operatingHours.status}`}>
+            {location.operatingHours.status === "published" ? "Published hours" : "Typical hours · verify"}
+          </p>
+        </div>
+      )}
       {location.matchReason && <p className="card__reason">{location.matchReason}</p>}
 
       {location.activeImpacts.map((impact, impactIndex) => (
