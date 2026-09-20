@@ -13,6 +13,13 @@ type DatabricksRow = Record<string, unknown>;
 
 const toBoolean = (value: unknown): boolean => value === true || value === 1 || value === "true";
 
+const formatClock = (value: string): string => {
+  const match = value.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return value;
+  const hour = Number(match[1]);
+  return `${hour % 12 || 12}:${match[2]} ${hour >= 12 ? "PM" : "AM"}`;
+};
+
 export class DatabricksService {
   constructor(private readonly config: DatabricksConfig = {}) {}
 
@@ -76,7 +83,15 @@ export class DatabricksService {
     // building. A live record wins when the same building is present in both.
     const merged = new Map(officialLocations.map((location) => [location.buildingId ?? location.id, location]));
     for (const location of liveLocations) {
-      merged.set(location.buildingId ?? location.id, location);
+      const key = location.buildingId ?? location.id;
+      const official = merged.get(key);
+      merged.set(key, {
+        ...official,
+        ...location,
+        operatingHours: official?.operatingHours,
+        accessibility: location.accessibility,
+        activeImpacts: location.activeImpacts
+      });
     }
     return [...merged.values()];
   }
@@ -123,6 +138,9 @@ export class DatabricksService {
   }
 
   private mapRow(row: DatabricksRow): CampusLocation {
+    const openTime = typeof row.openTime === "string" ? row.openTime : undefined;
+    const closeTime = typeof row.closeTime === "string" ? row.closeTime : undefined;
+    const publishedRange = openTime && closeTime ? `${formatClock(openTime)} – ${formatClock(closeTime)}` : null;
     return {
       id: String(row.id),
       name: String(row.name),
@@ -130,8 +148,16 @@ export class DatabricksService {
       latitude: Number(row.latitude),
       longitude: Number(row.longitude),
       buildingId: row.buildingId ? String(row.buildingId) : undefined,
-      openTime: String(row.openTime),
-      closeTime: String(row.closeTime),
+      openTime,
+      closeTime,
+      operatingHours: {
+        weekdays: publishedRange ?? "8:00 AM – 5:00 PM",
+        weekends: publishedRange ?? "Closed",
+        status: "typical",
+        note: publishedRange
+          ? "Databricks provides one daily schedule; verify weekend and holiday variations before visiting."
+          : "Typical planning hours, not a live building schedule. Verify before visiting."
+      },
       accessibility: {
         accessibleEntrance: toBoolean(row.accessibleEntrance),
         automaticDoor: toBoolean(row.automaticDoor),

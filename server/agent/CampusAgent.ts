@@ -109,6 +109,7 @@ export class CampusAgent {
   private score(location: CampusLocation, constraints: SearchConstraints): number {
     let score = 0;
     if (constraints.category && location.category === constraints.category) score += 12;
+    if (constraints.category === "study" && location.category === "academic") score += 6;
     if (location.accessibility.accessibleEntrance) score += 3;
     if (location.accessibility.automaticDoor) score += 2;
     if (location.activeImpacts.length === 0) score += 2;
@@ -128,7 +129,8 @@ export class CampusAgent {
         accessibleEntrance: location.accessibility.accessibleEntrance,
         automaticDoor: location.accessibility.automaticDoor,
         elevatorAvailable: location.accessibility.elevatorAvailable
-      }
+      },
+      operatingHours: location.operatingHours
     }));
     const raw = await this.llmClient.complete(
       "You are ranking official Virginia Tech campus locations for a user's request. " +
@@ -158,6 +160,17 @@ export class CampusAgent {
       }];
     }).slice(0, 20);
     if (ranked.length === 0) throw new Error("Gemini returned no valid campus IDs");
+
+    // Gemini may choose only a handful of obvious locations. Keep its choices
+    // first, then fill the list from the already-filtered deterministic ranking
+    // so users can browse a useful range without weakening hard requirements.
+    const minimumResults = Math.min(15, results.length);
+    for (const location of results) {
+      if (ranked.length >= minimumResults) break;
+      if (seen.has(location.id)) continue;
+      seen.add(location.id);
+      ranked.push(location);
+    }
 
     return {
       message: typeof parsed.message === "string" && parsed.message.trim()

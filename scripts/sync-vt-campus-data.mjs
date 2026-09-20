@@ -36,12 +36,42 @@ const slugify = (value) => value
 const categoryFor = (name, use) => {
   const normalized = `${name} ${use}`.toLowerCase();
   if (/library|student center|graduate life|torgersen/.test(normalized)) return "study";
-  if (/dining|food|market|restaurant|cafe|grill/.test(normalized)) return "dining";
+  if (/dietrick|owens|cochrane|lavery|dining|food|market|restaurant|cafe|grill/.test(normalized)) return "dining";
   if (/athletic|gym|stadium|coliseum|field house|recreation/.test(normalized)) return "recreation";
-  if (/residential|residence|house|hall east|hall west/.test(normalized)) return "residential";
+  if (/residential|residence|house|hall east|hall west/.test(normalized) || /residential/.test(use.toLowerCase())) return "residential";
   if (/academic|classroom|institute|laboratory|research/.test(normalized)) return "academic";
   if (/crc|corporate research/.test(normalized)) return "research";
   return "campus service";
+};
+
+const hoursFor = (name, category) => {
+  if (name === "Pamplin Hall") {
+    return {
+      weekdays: "7:00 AM – 11:00 PM",
+      weekends: "7:00 AM – 11:00 PM",
+      status: "published",
+      note: "Published building hours; holidays and university closures may differ.",
+      sourceUrl: "https://pamplin.vt.edu/about/facilities/pamplin-hall.html"
+    };
+  }
+
+  const typical = {
+    study: ["7:30 AM – 10:00 PM", "9:00 AM – 8:00 PM"],
+    academic: ["7:30 AM – 10:00 PM", "9:00 AM – 6:00 PM"],
+    dining: ["7:00 AM – 9:00 PM", "8:00 AM – 8:00 PM"],
+    recreation: ["6:00 AM – 11:00 PM", "8:00 AM – 10:00 PM"],
+    residential: ["Resident access: 24 hours", "Resident access: 24 hours"],
+    research: ["8:00 AM – 6:00 PM", "Closed"],
+    "campus service": ["8:00 AM – 5:00 PM", "Closed"]
+  };
+  const [weekdays, weekends] = typical[category] ?? typical["campus service"];
+  return {
+    weekdays,
+    weekends,
+    status: "typical",
+    note: "Typical planning hours based on location type, not a live building schedule. Verify before visiting.",
+    sourceUrl: "https://www.vt.edu/status.html"
+  };
 };
 
 const addressFor = (building) => {
@@ -94,12 +124,15 @@ const main = async () => {
       if (accessibleEntrance) facts.push("an accessible entrance");
       if (automaticDoor) facts.push("an automatic door");
       if (elevatorAvailable) facts.push("an elevator");
+      const category = categoryFor(clean(building.name), clean(building.bldg_use));
+      const operatingHours = hoursFor(clean(building.name), category);
 
       return {
         id: `${slugify(clean(building.name))}-${buildingId.toLowerCase()}`,
         buildingId,
         name: clean(building.name),
-        category: categoryFor(clean(building.name), clean(building.bldg_use)),
+        category,
+        operatingHours,
         ...(Number.isFinite(building.latitude) ? { latitude: building.latitude } : {}),
         ...(Number.isFinite(building.longitude) ? { longitude: building.longitude } : {}),
         ...(addressFor(building) ? { address: addressFor(building) } : {}),

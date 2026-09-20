@@ -51,8 +51,17 @@ describe("CampusAgent", () => {
 
     const response = await rankedAgent.processQuery("Find a library");
 
-    expect(response.results).toHaveLength(1);
+    expect(response.results.length).toBeGreaterThanOrEqual(15);
     expect(response.results[0].name).toBe("Newman Library");
     expect(response.results[0].matchReason).toMatch(/study space/i);
+  });
+
+  it("provides weekday and weekend planning hours for the complete catalog", async () => {
+    const locations = await agent.searchCampus({});
+
+    expect(locations.length).toBeGreaterThan(500);
+    expect(locations.every((location) =>
+      Boolean(location.operatingHours?.weekdays && location.operatingHours?.weekends)
+    )).toBe(true);
   });
 });
